@@ -623,6 +623,240 @@
       "bairro": "ALTO DA RASA",
       "lat": -22.741356357867264,
       "lng": -41.987943649292
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "CAMINHO DE BUZIOS",
+      "lat": -22.826583074624697,
+      "lng": -42.001290321350105
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "GURIRI",
+      "lat": -22.831250408418665,
+      "lng": -41.99961662292481
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "JARDIM PERO",
+      "lat": -22.834177298797727,
+      "lng": -42.006783485412605
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "RESERVA DO PERO",
+      "lat": -22.836491079744338,
+      "lng": -42.00869321823121
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "MONTE ALEGRE",
+      "lat": -22.850056559155757,
+      "lng": -42.02231884002686
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "JACARE",
+      "lat": -22.866210765344434,
+      "lng": -42.02137470245362
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "PORTO DO CARRO",
+      "lat": -22.855573327695442,
+      "lng": -42.03482866287232
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "CANTINHO DO CEU",
+      "lat": -22.843313538068177,
+      "lng": -42.01738357543946
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "BOSQUE DO PERO",
+      "lat": -22.84287849296886,
+      "lng": -42.00523853302003
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "PERO",
+      "lat": -22.858895144844112,
+      "lng": -41.99150562286378
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "CAJUEIRO",
+      "lat": -22.860595567443678,
+      "lng": -41.997599601745605
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "OGIVA",
+      "lat": -22.870362699058283,
+      "lng": -42.008500099182136
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "GAMBOA",
+      "lat": -22.87376323594483,
+      "lng": -42.018284797668464
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "ILHA DA DRAGA",
+      "lat": -22.872814257471216,
+      "lng": -42.025537490844734
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "CANAL PALMER",
+      "lat": -22.87127215330969,
+      "lng": -42.048475742340095
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "PRAIA DO SIQUEIRA",
+      "lat": -22.87599726325469,
+      "lng": -42.05188751220704
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "PALMEIRAS",
+      "lat": -22.87599726325469,
+      "lng": -42.04566478729249
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "NOVO PORTINHO",
+      "lat": -22.8722409130969,
+      "lng": -42.03663110733033
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "JARDIM EXCELCIOR",
+      "lat": -22.878191714476216,
+      "lng": -42.03553676605225
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "VILA BLANCHE",
+      "lat": -22.87985235669127,
+      "lng": -42.02738285064698
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "ITAJURU",
+      "lat": -22.882076399268747,
+      "lng": -42.02639579772949
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "CENTRO",
+      "lat": -22.881068171148154,
+      "lng": -42.01807022094727
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "MARLIM",
+      "lat": -22.8804306112663,
+      "lng": -42.01068878173828
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "PASSAGEM",
+      "lat": -22.876847370188234,
+      "lng": -42.010345458984375
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "VILA NOVA",
+      "lat": -22.885081270036423,
+      "lng": -42.02231884002686
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "ALGODOAL",
+      "lat": -22.889776247440736,
+      "lng": -42.026524543762214
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "BRAGA",
+      "lat": -22.89503442930087,
+      "lng": -42.035268545150764
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "SAO CRISTOVAO",
+      "lat": -22.891634425212946,
+      "lng": -42.04180240631104
+    },
+    {
+      "cidade": "SAO CRISTOVAO",
+      "bairro": "GUARANI",
+      "lat": -22.895073963731004,
+      "lng": -42.045707702636726
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "JARDIM OLINDA",
+      "lat": -22.88279796969916,
+      "lng": -42.0492696762085
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "PARQUE BURLE",
+      "lat": -22.8853283781593,
+      "lng": -42.04379796981812
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "JARDIM CAICARA",
+      "lat": -22.884557399328138,
+      "lng": -42.03579425811768
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "JARDIM FLAMBOYANT",
+      "lat": -22.882758431692707,
+      "lng": -42.03255414962769
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "SAO FRANCISCO",
+      "lat": -22.887957580728244,
+      "lng": -42.033476829528816
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "PORTINHO",
+      "lat": -22.870520865452463,
+      "lng": -42.03437805175782
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "JARDIM NAUTILUS",
+      "lat": -22.89879014872378,
+      "lng": -42.042231559753425
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "RECANTO DAS DUNAS",
+      "lat": -22.90365266255473,
+      "lng": -42.0489263534546
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "VILA DO SOL",
+      "lat": -22.915235021604033,
+      "lng": -42.06038475036622
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "FOGUETE",
+      "lat": -22.920215527010008,
+      "lng": -42.03909873962403
     }
   ],
   "teams": [
