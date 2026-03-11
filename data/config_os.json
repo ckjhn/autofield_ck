@@ -593,6 +593,36 @@
       "bairro": "JOAO FERNANDES",
       "lat": -22.742860354456404,
       "lng": -41.875162124633796
+    },
+    {
+      "cidade": "BUZIOS",
+      "bairro": "MARINAS",
+      "lat": -22.75544578237677,
+      "lng": -41.949577331542976
+    },
+    {
+      "cidade": "BUZIOS",
+      "bairro": "VILA VERDE",
+      "lat": -22.75038008914797,
+      "lng": -41.98493957519532
+    },
+    {
+      "cidade": "BUZIOS",
+      "bairro": "MARIA JOAQUINA",
+      "lat": -22.727898809959235,
+      "lng": -41.99111938476563
+    },
+    {
+      "cidade": "BUZIOS",
+      "bairro": "RASA",
+      "lat": -22.741989621606017,
+      "lng": -41.97052001953126
+    },
+    {
+      "cidade": "BUZIOS",
+      "bairro": "ALTO DA RASA",
+      "lat": -22.741356357867264,
+      "lng": -41.987943649292
     }
   ],
   "teams": [
