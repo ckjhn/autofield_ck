@@ -16,6 +16,113 @@
       "servicos": [
         "LIGACAO"
       ]
+    },
+    {
+      "id": 1773256896506,
+      "name": "CSCT-02",
+      "active": true,
+      "opcoes": [],
+      "solo": [
+        "terra",
+        "asfalto",
+        "bloco_paralelo"
+      ],
+      "servicos": [
+        "LIGACAO"
+      ]
+    },
+    {
+      "id": 1773256902690,
+      "name": "CSCT-03",
+      "active": true,
+      "opcoes": [
+        "pegar_cedo",
+        "retro"
+      ],
+      "solo": [
+        "terra",
+        "asfalto",
+        "bloco_paralelo"
+      ],
+      "servicos": [
+        "LIGACAO"
+      ]
+    },
+    {
+      "id": 1773256907810,
+      "name": "CSCT-04",
+      "active": true,
+      "opcoes": [],
+      "solo": [
+        "terra",
+        "asfalto",
+        "bloco_paralelo"
+      ],
+      "servicos": [
+        "LIGACAO"
+      ]
+    },
+    {
+      "id": 1773256912179,
+      "name": "CSCT-05",
+      "active": true,
+      "opcoes": [],
+      "solo": [
+        "terra",
+        "asfalto",
+        "bloco_paralelo"
+      ],
+      "servicos": [
+        "LIGACAO"
+      ]
+    },
+    {
+      "id": 1773256917300,
+      "name": "CSCT-06",
+      "active": true,
+      "opcoes": [
+        "pegar_cedo",
+        "desempenho"
+      ],
+      "solo": [
+        "terra",
+        "asfalto",
+        "bloco_paralelo"
+      ],
+      "servicos": [
+        "LIGACAO"
+      ]
+    },
+    {
+      "id": 1773256924891,
+      "name": "CSCT-07",
+      "active": true,
+      "opcoes": [],
+      "solo": [
+        "terra",
+        "asfalto",
+        "bloco_paralelo"
+      ],
+      "servicos": [
+        "LIGACAO"
+      ]
+    },
+    {
+      "id": 1773256931620,
+      "name": "CSCT-09",
+      "active": true,
+      "opcoes": [
+        "pegar_cedo",
+        "desempenho"
+      ],
+      "solo": [
+        "terra",
+        "asfalto",
+        "bloco_paralelo"
+      ],
+      "servicos": [
+        "LIGACAO"
+      ]
     }
   ],
   "serviceTypes": [
