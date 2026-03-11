@@ -167,6 +167,186 @@
       "bairro": "SAMBURA",
       "lat": -22.62735353228867,
       "lng": -42.00470455223162
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "BALNEARIO",
+      "lat": -22.838607067189592,
+      "lng": -42.1293067932129
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "PARQUE 2 MENINOS",
+      "lat": -22.828125685704265,
+      "lng": -42.13916659355164
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "BALNEARIO DAS CONCHAS",
+      "lat": -22.826622628973322,
+      "lng": -42.15188026428223
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "FLEXEIRA",
+      "lat": -22.817327041065383,
+      "lng": -42.121410369873054
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "JARDIM MORADA DA ALDEIA",
+      "lat": -22.817959952289524,
+      "lng": -42.10995197296143
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "VILLAGE BURITY",
+      "lat": -22.8097318769641,
+      "lng": -42.12458610534669
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "ETR CRUZ",
+      "lat": -22.80898024915597,
+      "lng": -42.12411403656006
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "PARQUE DA ALDEIA",
+      "lat": -22.807951699119933,
+      "lng": -42.11651802062989
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "JARDIM DAS ACACIAS",
+      "lat": -22.810977987614823,
+      "lng": -42.10883617401124
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "RECANTO DO SOL",
+      "lat": -22.811047215650106,
+      "lng": -42.10154056549073
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "ETR SAO MATEUS",
+      "lat": -22.79719101789747,
+      "lng": -42.10840702056885
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "ETR PAU RACHADO",
+      "lat": -22.790346466159818,
+      "lng": -42.14449882507325
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "ESTACAO",
+      "lat": -22.831289961410956,
+      "lng": -42.10445880889893
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "SAO JOSE",
+      "lat": -22.830874654418654,
+      "lng": -42.09864377975464
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "FLUMINENSE",
+      "lat": -22.82929252093321,
+      "lng": -42.09132671356201
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "JARDIM SOLEDADE",
+      "lat": -22.82406146117892,
+      "lng": -42.08881616592408
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "MORRO DOS MILAGRES",
+      "lat": -22.824615231271384,
+      "lng": -42.083666324615486
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "BOA VISTA",
+      "lat": -22.81938399178898,
+      "lng": -42.085018157958984
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "MORRO DOS MILAGRES",
+      "lat": -22.825356884116584,
+      "lng": -42.074460983276374
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "MOSSORO",
+      "lat": -22.836985472280645,
+      "lng": -42.10323572158814
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "CENTRO",
+      "lat": -22.841118523593632,
+      "lng": -42.10149765014649
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "CENTRO",
+      "lat": -22.839947789358632,
+      "lng": -42.101926803588874
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "NOVA SAO PEDRO",
+      "lat": -22.843028690704436,
+      "lng": -42.093772888183594
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "JARDINS DE SAO PEDRO",
+      "lat": -22.84362593332587,
+      "lng": -42.10317134857178
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "PORTO DA ALDEIA",
+      "lat": -22.852567804134882,
+      "lng": -42.104244232177734
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "POCO FUNDO",
+      "lat": -22.859567407484544,
+      "lng": -42.10694789886475
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "BOQUEIRAO",
+      "lat": -22.869374154922117,
+      "lng": -42.112398147583015
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "PRAIA DO SUDOESTE",
+      "lat": -22.872003666440943,
+      "lng": -42.11559534072876
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "PONTA DA AREIA",
+      "lat": -22.875760023160627,
+      "lng": -42.11083173751832
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "BALEIA",
+      "lat": -22.880129128419085,
+      "lng": -42.125701904296875
     }
   ],
   "teams": [
