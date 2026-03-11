@@ -1,0 +1,20 @@
+[
+  {
+    "cidade": "IGUABA",
+    "bairro": "CENTRO",
+    "lat": -22.839754037283807,
+    "lng": -42.225737571716316
+  },
+  {
+    "cidade": "IGUABA",
+    "bairro": "CIDADE NOVA",
+    "lat": -22.83548251339982,
+    "lng": -42.209815979003906
+  },
+  {
+    "cidade": "IGUABA",
+    "bairro": "RECANTO DO NILO",
+    "lat": -22.83906190131502,
+    "lng": -42.217819690704346
+  }
+]
