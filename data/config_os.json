@@ -455,6 +455,144 @@
       "bairro": "PARQUE ELDORADO 2",
       "lat": -22.83548251339982,
       "lng": -42.02106356620789
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "COLINAS DO PERO",
+      "lat": -22.830597782386363,
+      "lng": -42.012555599212654
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "TANGARA",
+      "lat": -22.823220912984294,
+      "lng": -42.012770175933845
+    },
+    {
+      "cidade": "CABO FRIO",
+      "bairro": "PARQUE ELDORADO 3",
+      "lat": -22.82246935961594,
+      "lng": -42.00463771820069
+    },
+    {
+      "cidade": "BUZIOS",
+      "bairro": "CARAVELAS",
+      "lat": -22.805222047917518,
+      "lng": -41.973867416381836
+    },
+    {
+      "cidade": "BUZIOS",
+      "bairro": "BAIA FORMOSA",
+      "lat": -22.80284839372867,
+      "lng": -41.97463989257813
+    },
+    {
+      "cidade": "BUZIOS",
+      "bairro": "JOSE GONCALVES",
+      "lat": -22.7914147136252,
+      "lng": -41.94889068603516
+    },
+    {
+      "cidade": "BUZIOS",
+      "bairro": "SAO JOSE",
+      "lat": -22.780534023962105,
+      "lng": -41.94292545318604
+    },
+    {
+      "cidade": "BUZIOS",
+      "bairro": "CEM BRACAS",
+      "lat": -22.77837756605487,
+      "lng": -41.92990064620972
+    },
+    {
+      "cidade": "BUZIOS",
+      "bairro": "BOSQUE",
+      "lat": -22.780949484413636,
+      "lng": -41.93219661712647
+    },
+    {
+      "cidade": "BUZIOS",
+      "bairro": "TUCUNS",
+      "lat": -22.785756863325407,
+      "lng": -41.92318439483643
+    },
+    {
+      "cidade": "BUZIOS",
+      "bairro": "VILA VERDE",
+      "lat": -22.780850565373274,
+      "lng": -41.91850662231446
+    },
+    {
+      "cidade": "BUZIOS",
+      "bairro": "MANGUINHOS",
+      "lat": -22.77236304466144,
+      "lng": -41.917412281036384
+    },
+    {
+      "cidade": "BUZIOS",
+      "bairro": "GERIBA",
+      "lat": -22.778318213520443,
+      "lng": -41.91327095031739
+    },
+    {
+      "cidade": "BUZIOS",
+      "bairro": "CANTO DE GERIBA",
+      "lat": -22.779861371024865,
+      "lng": -41.90273523330689
+    },
+    {
+      "cidade": "BUZIOS",
+      "bairro": "ALTO DE BUZIOS",
+      "lat": -22.76814876484427,
+      "lng": -41.89885139465333
+    },
+    {
+      "cidade": "BUZIOS",
+      "bairro": "ALBATROZ",
+      "lat": -22.774598736527672,
+      "lng": -41.90009593963624
+    },
+    {
+      "cidade": "BUZIOS",
+      "bairro": "VILA CARANGA",
+      "lat": -22.758809615496446,
+      "lng": -41.89734935760499
+    },
+    {
+      "cidade": "BUZIOS",
+      "bairro": "FERRADURA",
+      "lat": -22.76842576375666,
+      "lng": -41.89074039459229
+    },
+    {
+      "cidade": "BUZIOS",
+      "bairro": "PORTAL DA FERRDURA",
+      "lat": -22.76438943831772,
+      "lng": -41.892199516296394
+    },
+    {
+      "cidade": "BUZIOS",
+      "bairro": "FORNO",
+      "lat": -22.76090702244901,
+      "lng": -41.87533378601075
+    },
+    {
+      "cidade": "BUZIOS",
+      "bairro": "BRAVA",
+      "lat": -22.75615813042206,
+      "lng": -41.87400341033936
+    },
+    {
+      "cidade": "BUZIOS",
+      "bairro": "CENTRO",
+      "lat": -22.755762381966637,
+      "lng": -41.88709259033204
+    },
+    {
+      "cidade": "BUZIOS",
+      "bairro": "JOAO FERNANDES",
+      "lat": -22.742860354456404,
+      "lng": -41.875162124633796
     }
   ],
   "teams": [
