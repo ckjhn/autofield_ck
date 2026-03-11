@@ -1,0 +1,14 @@
+{
+  "neighborhoods": [],
+  "teams": [
+    {
+      "id": 1,
+      "name": "CSCT-01",
+      "active": true,
+      "opcoes": [],
+      "solo": [],
+      "servicos": []
+    }
+  ],
+  "serviceTypes": []
+}
