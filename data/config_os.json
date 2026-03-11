@@ -149,6 +149,24 @@
       "bairro": "ARRASTAO DAS PEDRAS",
       "lat": -22.792799466402574,
       "lng": -42.2241497039795
+    },
+    {
+      "cidade": "TAMOIOS",
+      "bairro": "AQUARIUS",
+      "lat": -22.600430762062786,
+      "lng": -42.00098991394044
+    },
+    {
+      "cidade": "TAMOIOS",
+      "bairro": "SANTO ANTONIO",
+      "lat": -22.601103707676003,
+      "lng": -41.99695587158204
+    },
+    {
+      "cidade": "TAMOIOS",
+      "bairro": "SAMBURA",
+      "lat": -22.62735353228867,
+      "lng": -42.00470455223162
     }
   ],
   "teams": [
