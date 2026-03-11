@@ -1,5 +1,156 @@
 {
-  "neighborhoods": [],
+  "neighborhoods": [
+    {
+      "cidade": "IGUABA",
+      "bairro": "IGUABA PEQUENA",
+      "lat": -22.849206284596903,
+      "lng": -42.23865509033204
+    },
+    {
+      "cidade": "IGUANA",
+      "bairro": "CANELLAS CITY",
+      "lat": -22.845053704550146,
+      "lng": -42.23568320274354
+    },
+    {
+      "cidade": "IGUABA",
+      "bairro": "PARQUE TAMARIZ",
+      "lat": -22.843926553800834,
+      "lng": -42.2300934791565
+    },
+    {
+      "cidade": "IGUABA",
+      "bairro": "CENTRO",
+      "lat": -22.840189092376082,
+      "lng": -42.22545862197877
+    },
+    {
+      "cidade": "IGUABA",
+      "bairro": "SOPOTO",
+      "lat": -22.835818703012002,
+      "lng": -42.23043680191041
+    },
+    {
+      "cidade": "IGUABA",
+      "bairro": "PEDREIRA",
+      "lat": -22.836411976771814,
+      "lng": -42.23783969879151
+    },
+    {
+      "cidade": "IGUABA",
+      "bairro": "BOA VISTA",
+      "lat": -22.82867943926344,
+      "lng": -42.22788333892823
+    },
+    {
+      "cidade": "IGUABA",
+      "bairro": "JARDIM SOLARES",
+      "lat": -22.83022202658448,
+      "lng": -42.241508960723884
+    },
+    {
+      "cidade": "IGUABA",
+      "bairro": "RECANTO DO NILO",
+      "lat": -22.83796436420246,
+      "lng": -42.21872091293335
+    },
+    {
+      "cidade": "IGUABA",
+      "bairro": "ESTACAO",
+      "lat": -22.833030281690814,
+      "lng": -42.22457885742188
+    },
+    {
+      "cidade": "IGUABA",
+      "bairro": "UNIAO",
+      "lat": -22.824684452374555,
+      "lng": -42.22118854522706
+    },
+    {
+      "cidade": "IGUABA",
+      "bairro": "COQUEIROS",
+      "lat": -22.821876025078907,
+      "lng": -42.200889587402344
+    },
+    {
+      "cidade": "IGUABA",
+      "bairro": "NOVA IGUABA",
+      "lat": -22.825386550146348,
+      "lng": -42.209022045135505
+    },
+    {
+      "cidade": "IGUABA",
+      "bairro": "CAPIVARA",
+      "lat": -22.834256403069407,
+      "lng": -42.19316482543946
+    },
+    {
+      "cidade": "IGUABA",
+      "bairro": "UBAS",
+      "lat": -22.845765584420892,
+      "lng": -42.19908714294434
+    },
+    {
+      "cidade": "IGUABA",
+      "bairro": "RECANTO DO SOL",
+      "lat": -22.838844372140407,
+      "lng": -42.183036804199226
+    },
+    {
+      "cidade": "IGUABA",
+      "bairro": "PARQUE DOS DESEJOS",
+      "lat": -22.837341433794403,
+      "lng": -42.18792915344239
+    },
+    {
+      "cidade": "IGUABA",
+      "bairro": "PRAIA LINDA",
+      "lat": -22.838567516324197,
+      "lng": -42.1724796295166
+    },
+    {
+      "cidade": "SAO PEDRO",
+      "bairro": "BELA VISTA",
+      "lat": -22.842146823072902,
+      "lng": -42.15919733047485
+    },
+    {
+      "cidade": "IGUABA",
+      "bairro": "SAO MIGUEL",
+      "lat": -22.829114529765185,
+      "lng": -42.21713304519653
+    },
+    {
+      "cidade": "IGUABA",
+      "bairro": "CIDADE NOVA",
+      "lat": -22.83544296162614,
+      "lng": -42.20977306365967
+    },
+    {
+      "cidade": "IGUABA",
+      "bairro": "SAPEATIBA MIRIM",
+      "lat": -22.812975711055174,
+      "lng": -42.1975850881945
+    },
+    {
+      "cidade": "IGUABA",
+      "bairro": "VILA NOVA",
+      "lat": -22.813529511953217,
+      "lng": -42.229342460632324
+    },
+    {
+      "cidade": "IGUABA",
+      "bairro": "IGARAPIAPUNHA",
+      "lat": -22.802887954970597,
+      "lng": -42.244019508361816
+    },
+    {
+      "cidade": "IGUABA",
+      "bairro": "ARRASTAO DAS PEDRAS",
+      "lat": -22.792799466402574,
+      "lng": -42.2241497039795
+    }
+  ],
   "teams": [
     {
       "id": 1,
