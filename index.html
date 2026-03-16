@@ -227,6 +227,11 @@
                 <input type="text" id="flt-os" placeholder="OS..." onkeyup="applyFilters()">
                 <input type="text" id="flt-mat" placeholder="Matrícula..." onkeyup="applyFilters()">
                 <input type="text" id="flt-obs" placeholder="Obs... (none = sem obs)" onkeyup="applyFilters()">
+                <!-- Filtro por equipe: lista dinâmica de equipes e opção para sem equipe -->
+                <select id="flt-equipe" onchange="applyFilters()" style="min-width:120px;">
+                    <option value="">Todas Equipes</option>
+                    <option value="none">Sem Equipe</option>
+                </select>
                 <label>Data:</label>
                 <input type="date" id="flt-data-ini" onchange="applyFilters()">
                 <span style="color:var(--text-muted)">até</span>
@@ -383,6 +388,60 @@
     function isRetroOS(os){const o=(os.obs1||'').toUpperCase();return o.includes('RETRO')||o.includes('RETORNO')}
     function canAssignRedeNaoLocalizada(os,teamName){const b=parseRedeNaoLocalizada(os.obs1);if(!b)return true;return!b.includes(teamName.toUpperCase())}
 
+    // ======= MANUAL ASSIGNMENT CHECKS =======
+    /**
+     * Check if a team can handle a soil type for a given OS.
+     * This mirrors the logic used in the auto‑generation routine.  It treats
+     * both the OS soil and team soil preferences as uppercase to perform a
+     * case‑insensitive match.  If the OS has no soil defined or the team
+     * has not selected any soils, it returns true.  Otherwise it ensures
+     * at least one of the team's soil capabilities appears within the OS's
+     * soil string.
+     */
+    function canTeamHandleSoloManual(team,os){
+        if(!os||!team) return true;
+        if(!os.solo||os.solo.trim()==='') return true;
+        if(!team.solo||team.solo.length===0) return true;
+        const s=os.solo.toUpperCase().trim();
+        return team.solo.some(ts=>s.includes(ts.toUpperCase().replace('_',' ')));
+    }
+    /**
+     * Check if a team can handle a service type for a given OS.  If the OS has
+     * no service defined, any team can perform it.  If the team has explicit
+     * service capabilities configured, the OS service must match one of them.
+     * If the OS service exists in the global list of configured service
+     * types but the team has no matching capability, the assignment is
+     * disallowed.  Otherwise the OS is allowed even if the team has no
+     * explicit service list.
+     */
+    function canTeamHandleServicoManual(team,os){
+        if(!os||!team) return true;
+        const osS=(os.servico||'').toUpperCase().trim();
+        if(!osS) return true;
+        // if team has specific services selected, OS service must match one
+        if(team.servicos && team.servicos.length>0){
+            return team.servicos.some(s=>s.toUpperCase()===osS);
+        }
+        // if serviceTypes contains this service but team didn't select it, disallow
+        if(serviceTypes && serviceTypes.some(st=>st.toUpperCase()===osS)){
+            return false;
+        }
+        return true;
+    }
+    /**
+     * Composite check combining solo and service checks, plus the same
+     * retro/redeNãoLocalizada restrictions used elsewhere.  This function
+     * should be used when manually dropping an OS onto a team to ensure
+     * consistency with the auto‑generation logic.
+     */
+    function canTeamHandleOSManual(team,os){
+        if(!canTeamHandleSoloManual(team,os)) return false;
+        if(!canTeamHandleServicoManual(team,os)) return false;
+        if(isRetroOS(os) && !(team.opcoes && team.opcoes.includes('retro'))) return false;
+        if(isRedeNaoLocalizada(os) && !canAssignRedeNaoLocalizada(os,team.name)) return false;
+        return true;
+    }
+
     // ================= CHECKBOX =================
     function toggleChk(label){setTimeout(()=>{const cb=label.querySelector('input[type="checkbox"]');cb.checked?label.classList.add('checked'):label.classList.remove('checked')},0)}
 
@@ -457,7 +516,52 @@
         else{btn.style.background='';btn.style.borderColor='';btn.style.color='';btn.innerHTML='🗺️ Configurar Bairros';document.getElementById('map').style.cursor='';ind.style.display='none'}
     }
     map.on('click',function(e){if(!isMapConfigMode)return;const c=prompt("Cidade (ex: CABO FRIO):");if(!c)return;const b=prompt("Bairro:");if(!b)return;neighborhoods.push({cidade:c.trim().toUpperCase(),bairro:b.trim().toUpperCase(),lat:e.latlng.lat,lng:e.latlng.lng});renderNeighborhoods();recalculateOSLocations()});
-    function renderNeighborhoods(){neighborhoodLayer.clearLayers();neighborhoods.forEach(n=>{L.circleMarker([n.lat,n.lng],{radius:10,fillColor:'#e74c3c',color:'#ffffff',weight:2,opacity:1,fillOpacity:0.85}).bindTooltip(n.bairro,{permanent:true,direction:'right',className:'bairro-label'}).addTo(neighborhoodLayer)})}
+    function renderNeighborhoods(){
+        // Clear existing neighborhood markers
+        neighborhoodLayer.clearLayers();
+        // Render each neighborhood as a marker with optional edit/delete when in config mode
+        neighborhoods.forEach((n) => {
+            const marker = L.circleMarker([n.lat,n.lng],{
+                radius:10,
+                fillColor:'#e74c3c',
+                color:'#ffffff',
+                weight:2,
+                opacity:1,
+                fillOpacity:0.85
+            });
+            marker.bindTooltip(n.bairro,{permanent:true,direction:'right',className:'bairro-label'});
+            // When in map configuration mode, allow editing or deleting neighborhoods via clicking the marker
+            marker.on('click',function(){
+                if(!isMapConfigMode) return;
+                // Ask the user whether to edit or delete the neighborhood
+                const resp = prompt('Editar ou Deletar? (E/D)', 'E');
+                if(!resp) return;
+                const action = resp.trim().toUpperCase();
+                // Delete the neighborhood
+                if(action === 'D'){
+                    if(confirm('Confirma deletar este bairro?')){
+                        const idx = neighborhoods.indexOf(n);
+                        if(idx >= 0){
+                            neighborhoods.splice(idx,1);
+                            renderNeighborhoods();
+                            recalculateOSLocations();
+                        }
+                    }
+                } else if(action === 'E'){
+                    // Edit the neighborhood's city and name
+                    const newCity = prompt('Cidade:', n.cidade || '');
+                    if(newCity === null) return;
+                    const newBairro = prompt('Bairro:', n.bairro || '');
+                    if(newBairro === null) return;
+                    n.cidade = newCity.trim().toUpperCase();
+                    n.bairro = newBairro.trim().toUpperCase();
+                    renderNeighborhoods();
+                    recalculateOSLocations();
+                }
+            });
+            marker.addTo(neighborhoodLayer);
+        });
+    }
 
     // ================= HAVERSINE =================
     function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2){const R=6371;const dLat=(lat2-lat1)*(Math.PI/180);const dLon=(lon2-lon1)*(Math.PI/180);const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)))}
@@ -489,8 +593,28 @@
                 if(!isNaN(lat)&&!isNaN(lng)){
                     const restricaoStr=(row[5]||'').toString().trim();
                     let dataGer=row[6]||'';if(typeof dataGer==='number'){const dt=new Date((dataGer-25569)*86400*1000);dataGer=dt.toISOString().split('T')[0]}
-                    const servicoStr=String(row[10]||'').trim();
-                    osData.push({id:String(row[1]||Date.now()+i),matricula:String(row[0]||''),os:String(row[1]||''),cidade:String(row[2]||'').trim(),bairro:String(row[3]||'').trim(),obs1:String(row[4]||''),restricao:restricaoStr,dataGeracao:dataGer,servico:servicoStr,solo:String(row[11]||'').trim(),originalLat:lat,originalLng:lng,lat,lng,teamId:null,distWarning:false,isRestricted:restricaoStr.length>0});
+                // Always read service and soil types from Excel as uppercase.
+                const servicoStr=String(row[10]||'').trim().toUpperCase();
+                    osData.push({
+                        id:String(row[1]||Date.now()+i),
+                        matricula:String(row[0]||''),
+                        os:String(row[1]||''),
+                        cidade:String(row[2]||'').trim(),
+                        bairro:String(row[3]||'').trim(),
+                        obs1:String(row[4]||''),
+                        restricao:restricaoStr,
+                        dataGeracao:dataGer,
+                        servico:servicoStr,
+                        // read solo as uppercase since Excel will provide caps
+                        solo:String(row[11]||'').trim().toUpperCase(),
+                        originalLat:lat,
+                        originalLng:lng,
+                        lat,
+                        lng,
+                        teamId:null,
+                        distWarning:false,
+                        isRestricted:restricaoStr.length>0
+                    });
                 }
             }
             recalculateOSLocations();
@@ -500,16 +624,61 @@
 
     // ================= FILTERS =================
     function applyFilters(){
-        const fC=document.getElementById('flt-cidade').value.toUpperCase();const fB=document.getElementById('flt-bairro').value.toLowerCase();const fO=document.getElementById('flt-os').value.toLowerCase();const fM=document.getElementById('flt-mat').value.toLowerCase();const fOb=document.getElementById('flt-obs').value.toLowerCase();const fDI=document.getElementById('flt-data-ini').value;const fDF=document.getElementById('flt-data-fim').value;
+        const fC=document.getElementById('flt-cidade').value.toUpperCase();
+        const fB=document.getElementById('flt-bairro').value.toLowerCase();
+        const fO=document.getElementById('flt-os').value.toLowerCase();
+        const fM=document.getElementById('flt-mat').value.toLowerCase();
+        const fOb=document.getElementById('flt-obs').value.toLowerCase();
+        const fDI=document.getElementById('flt-data-ini').value;
+        const fDF=document.getElementById('flt-data-fim').value;
+        // Team filter: may not exist when the page first loads
+        let fE='';
+        const eqSel=document.getElementById('flt-equipe');
+        if(eqSel) fE=eqSel.value;
         const filtered=osData.filter(os=>{
-            if(fC&&!os.cidade.toUpperCase().includes(fC))return false;if(fB&&!os.bairro.toLowerCase().includes(fB))return false;if(fO&&!os.os.toLowerCase().includes(fO))return false;if(fM&&!os.matricula.toLowerCase().includes(fM))return false;
-            if(fOb){if(fOb==='none'){if(os.obs1&&os.obs1.trim()!=='')return false}else{if(!os.obs1.toLowerCase().includes(fOb))return false}}
-            if(fDI&&os.dataGeracao){if(new Date(os.dataGeracao)<new Date(fDI))return false}if(fDF&&os.dataGeracao){if(new Date(os.dataGeracao)>new Date(fDF))return false}return true;
+            // city filter
+            if(fC && !os.cidade.toUpperCase().includes(fC)) return false;
+            // bairro filter
+            if(fB && !os.bairro.toLowerCase().includes(fB)) return false;
+            // OS number filter
+            if(fO && !os.os.toLowerCase().includes(fO)) return false;
+            // matricula filter
+            if(fM && !os.matricula.toLowerCase().includes(fM)) return false;
+            // obs filter
+            if(fOb){
+                if(fOb==='none'){
+                    // show only those with no observation
+                    if(os.obs1 && os.obs1.trim()!=='') return false;
+                } else {
+                    if(!os.obs1.toLowerCase().includes(fOb)) return false;
+                }
+            }
+            // team filter: value 'none' means unassigned; empty string means all
+            if(fE){
+                if(fE==='none'){
+                    if(os.teamId) return false;
+                } else {
+                    if(String(os.teamId) !== fE) return false;
+                }
+            }
+            // date filters
+            if(fDI && os.dataGeracao){ if(new Date(os.dataGeracao) < new Date(fDI)) return false; }
+            if(fDF && os.dataGeracao){ if(new Date(os.dataGeracao) > new Date(fDF)) return false; }
+            return true;
         });
         if(currentSortField){filtered.sort((a,b)=>{let vA,vB;switch(currentSortField){case'matricula':vA=a.matricula;vB=b.matricula;break;case'os':vA=a.os;vB=b.os;break;case'cidade':vA=a.cidade;vB=b.cidade;break;case'bairro':vA=a.bairro;vB=b.bairro;break;case'obs1':vA=a.obs1||'';vB=b.obs1||'';break;case'restricao':vA=a.restricao||'';vB=b.restricao||'';break;case'prazo':vA=getDaysElapsed(a.dataGeracao)||-1;vB=getDaysElapsed(b.dataGeracao)||-1;break;case'servico':vA=a.servico||'';vB=b.servico||'';break;case'solo':vA=a.solo||'';vB=b.solo||'';break;case'equipe':const tA=teams.find(t=>t.id===a.teamId);const tB=teams.find(t=>t.id===b.teamId);vA=tA?tA.name:'';vB=tB?tB.name:'';break;default:vA='';vB=''}if(currentSortField==='prazo')return currentSortAsc?vA-vB:vB-vA;const sA=String(vA).toLowerCase();const sB=String(vB).toLowerCase();if(sA<sB)return currentSortAsc?-1:1;if(sA>sB)return currentSortAsc?1:-1;return 0})}
         renderTable(filtered);if(!activeTeamOverlayId)renderMap(filtered);
     }
-    function clearFilters(){document.getElementById('flt-cidade').value='';document.querySelectorAll('#filter-bar input').forEach(inp=>inp.value='');currentSortField=null;currentSortAsc=true;applyFilters()}
+    function clearFilters(){
+        document.getElementById('flt-cidade').value='';
+        document.querySelectorAll('#filter-bar input').forEach(inp=>{inp.value='';});
+        // Reset team filter to show all
+        const eqSel=document.getElementById('flt-equipe');
+        if(eqSel) eqSel.value='';
+        currentSortField=null;
+        currentSortAsc=true;
+        applyFilters();
+    }
     function sortTable(field){if(currentSortField===field){currentSortAsc=!currentSortAsc}else{currentSortField=field;currentSortAsc=true}document.querySelectorAll('thead th').forEach(th=>th.classList.remove('sorted-active'));const headers=['matricula','os','cidade','bairro','obs1','restricao','prazo','servico','solo','equipe'];const idx=headers.indexOf(field);if(idx>=0)document.querySelectorAll('thead th')[idx].classList.add('sorted-active');applyFilters()}
 
     // ================= TABLE =================
@@ -548,7 +717,34 @@
     function dropOS(ev){
         ev.preventDefault();document.getElementById('drop-zone').classList.remove('drag-over');
         const osId=ev.dataTransfer.getData("text/plain");
-        if(osId&&activeTeamOverlayId){const os=osData.find(o=>o.id===osId);if(os&&!os.isRestricted){const team=teams.find(t=>t.id===activeTeamOverlayId);if(os.teamId&&os.teamId!==team.id){const old=teams.find(t=>t.id===os.teamId);if(old)old.programmedOS=old.programmedOS.filter(id=>id!==osId)}if(!team.programmedOS.includes(osId)){team.programmedOS.push(osId);os.teamId=team.id;updateOverlayRouteMap();applyFilters()}}}
+        if(osId && activeTeamOverlayId){
+            const os=osData.find(o=>o.id===osId);
+            if(os && !os.isRestricted){
+                const team=teams.find(t=>t.id===activeTeamOverlayId);
+                // Enforce that early teams can only perform one OS per day
+                if(team.opcoes && team.opcoes.includes('pegar_cedo') && team.programmedOS.length >= 1){
+                    alert('Equipes com opção "Pegar Cedo" só podem ter 1 OS por dia.');
+                    return;
+                }
+                // Check if the team is allowed to handle this OS (service/solo/retro constraints)
+                if(!canTeamHandleOSManual(team, os)){
+                    alert('Esta equipe não pode realizar este tipo de serviço, solo ou observação.');
+                    return;
+                }
+                // Remove from previous team if assigned elsewhere
+                if(os.teamId && os.teamId !== team.id){
+                    const old=teams.find(t=>t.id===os.teamId);
+                    if(old) old.programmedOS = old.programmedOS.filter(id=>id !== osId);
+                }
+                // Add to team's route if not already present
+                if(!team.programmedOS.includes(osId)){
+                    team.programmedOS.push(osId);
+                    os.teamId = team.id;
+                    updateOverlayRouteMap();
+                    applyFilters();
+                }
+            }
+        }
     }
     function removeOSFromTeam(osId){const team=teams.find(t=>t.id===activeTeamOverlayId);team.programmedOS=team.programmedOS.filter(id=>id!==osId);const os=osData.find(o=>o.id===osId);if(os)os.teamId=null;updateOverlayRouteMap();applyFilters()}
     function updateOverlayRouteMap(){
@@ -574,6 +770,23 @@
             info.innerHTML=`<span class="team-name">${t.name} <span class="status-badge ${bc}">${t.programmedOS.length} OS</span></span>${th}`;
             row.appendChild(stBtn);row.appendChild(info);list.appendChild(row);
         });
+
+        // Update the team filter options whenever teams are rendered
+        const eqSel=document.getElementById('flt-equipe');
+        if(eqSel){
+            const prev=eqSel.value;
+            // Clear existing options and re‑add default choices
+            eqSel.innerHTML='';
+            const optAll=document.createElement('option');optAll.value='';optAll.textContent='Todas Equipes';eqSel.appendChild(optAll);
+            const optNone=document.createElement('option');optNone.value='none';optNone.textContent='Sem Equipe';eqSel.appendChild(optNone);
+            teams.forEach(t=>{
+                const o=document.createElement('option');o.value=String(t.id);o.textContent=t.name;eqSel.appendChild(o);
+            });
+            // Restore previously selected value if still valid
+            const exists=[...eqSel.options].some(o=>o.value===prev);
+            if(exists) eqSel.value=prev;
+            else eqSel.value='';
+        }
     }
     function openTeamModal(tId){
         const modal=document.getElementById('modal-team');modal.style.display='flex';
@@ -631,26 +844,42 @@
         activeTeams.forEach(team=>{
             const city=teamCityMap[team.id];if(!city)return;
             let cityPool=osByCity[city].filter(o=>!o.teamId);
-            const isRetro=team.opcoes&&team.opcoes.includes('retro');const isCedo=team.opcoes&&team.opcoes.includes('pegar_cedo');const isDesemp=team.opcoes&&team.opcoes.includes('desempenho');
+            const isRetro=team.opcoes&&team.opcoes.includes('retro');
+            const isCedo=team.opcoes&&team.opcoes.includes('pegar_cedo');
+            const isDesemp=team.opcoes&&team.opcoes.includes('desempenho');
+            // Teams with the "pegar_cedo" option can only handle one OS per day.
+            const teamMaxOS = isCedo ? 1 : maxOS;
             const isPlain=(!team.opcoes||team.opcoes.length===0)&&(!team.solo||team.solo.length===0)&&(!team.servicos||team.servicos.length===0);
             let route=[];
             function withinDist(os){if(route.length===0)return true;const last=osData.find(o=>o.id===route[route.length-1]);if(!last)return true;return getDistanceFromLatLonInKm(last.lat,last.lng,os.lat,os.lng)<=MAX_DIST}
 
             if(isCedo){let c=cityPool.find(o=>isPegarCedoOS(o)&&canTeamHandleOS(team,o));if(c){route.push(c.id);c.teamId=team.id;cityPool=cityPool.filter(o=>o.id!==c.id)}else{c=pool.find(o=>!o.teamId&&isPegarCedoOS(o)&&canTeamHandleOS(team,o));if(c){route.push(c.id);c.teamId=team.id}}}
 
-            if(isRetro){cityPool.filter(o=>isRetroOS(o)&&canTeamHandleOS(team,o)).sort((a,b)=>(getDaysElapsed(b.dataGeracao)||0)-(getDaysElapsed(a.dataGeracao)||0)).forEach(os=>{if(route.length>=maxOS)return;if(!withinDist(os))return;route.push(os.id);os.teamId=team.id});cityPool=cityPool.filter(o=>!o.teamId);
-                cityPool.filter(o=>isRedeNaoLocalizada(o)&&canTeamHandleOS(team,o)).forEach(os=>{if(route.length>=maxOS)return;if(!withinDist(os))return;route.push(os.id);os.teamId=team.id});cityPool=cityPool.filter(o=>!o.teamId)}
+            if(isRetro){
+                cityPool.filter(o=>isRetroOS(o)&&canTeamHandleOS(team,o))
+                    .sort((a,b)=>(getDaysElapsed(b.dataGeracao)||0)-(getDaysElapsed(a.dataGeracao)||0))
+                    .forEach(os=>{if(route.length>=teamMaxOS)return;if(!withinDist(os))return;route.push(os.id);os.teamId=team.id});
+                cityPool=cityPool.filter(o=>!o.teamId);
+                cityPool.filter(o=>isRedeNaoLocalizada(o)&&canTeamHandleOS(team,o))
+                    .forEach(os=>{if(route.length>=teamMaxOS)return;if(!withinDist(os))return;route.push(os.id);os.teamId=team.id});
+                cityPool=cityPool.filter(o=>!o.teamId);
+            }
 
-            if(isDesemp&&!isRetro){cityPool.filter(o=>isRedeNaoLocalizada(o)&&canTeamHandleOS(team,o)).sort((a,b)=>(getDaysElapsed(b.dataGeracao)||0)-(getDaysElapsed(a.dataGeracao)||0)).forEach(os=>{if(route.length>=maxOS)return;if(!withinDist(os))return;route.push(os.id);os.teamId=team.id});cityPool=cityPool.filter(o=>!o.teamId)}
+            if(isDesemp && !isRetro){
+                cityPool.filter(o=>isRedeNaoLocalizada(o)&&canTeamHandleOS(team,o))
+                    .sort((a,b)=>(getDaysElapsed(b.dataGeracao)||0)-(getDaysElapsed(a.dataGeracao)||0))
+                    .forEach(os=>{if(route.length>=teamMaxOS)return;if(!withinDist(os))return;route.push(os.id);os.teamId=team.id});
+                cityPool=cityPool.filter(o=>!o.teamId);
+            }
 
-            if(route.length<maxOS){
+            if(route.length < teamMaxOS){
                 let remaining=cityPool.filter(o=>!o.teamId&&canTeamHandleOS(team,o));
                 if(!isRetro)remaining=remaining.filter(o=>!isRetroOS(o));if(!isCedo)remaining=remaining.filter(o=>!isPegarCedoOS(o));if(isPlain)remaining=remaining.filter(o=>!o.obs1||o.obs1.trim()==='');
                 remaining.sort((a,b)=>{const pA=getPrazoPriority(a),pB=getPrazoPriority(b);if(pA!==pB)return pB-pA;return(getDaysElapsed(b.dataGeracao)||0)-(getDaysElapsed(a.dataGeracao)||0)});
                 const urgent=remaining.filter(o=>getPrazoPriority(o)>=3);const normal=remaining.filter(o=>getPrazoPriority(o)<3);
-                urgent.forEach(os=>{if(route.length>=maxOS)return;if(!withinDist(os))return;route.push(os.id);os.teamId=team.id});
+                urgent.forEach(os=>{if(route.length>=teamMaxOS)return;if(!withinDist(os))return;route.push(os.id);os.teamId=team.id});
                 let leftover=normal.filter(o=>!o.teamId);let stuck=0;
-                while(route.length<maxOS&&leftover.length>0&&stuck<leftover.length){
+                while(route.length<teamMaxOS && leftover.length>0 && stuck < leftover.length){
                     const last=route.length>0?osData.find(o=>o.id===route[route.length-1]):null;if(!last)break;
                     let bi=-1,bd=Infinity;for(let i=0;i<leftover.length;i++){const d=getDistanceFromLatLonInKm(last.lat,last.lng,leftover[i].lat,leftover[i].lng);if(d<=MAX_DIST){const sc=d-(getPrazoPriority(leftover[i])>=2?0.5:0);if(sc<bd){bd=sc;bi=i}}}
                     if(bi===-1){let ci=0,cd=Infinity;for(let i=0;i<leftover.length;i++){const d=getDistanceFromLatLonInKm(last.lat,last.lng,leftover[i].lat,leftover[i].lng);if(d<cd){cd=d;ci=i}}if(cd>MAX_DIST*1.5)break;route.push(leftover[ci].id);leftover[ci].teamId=team.id;leftover.splice(ci,1);stuck=0}
