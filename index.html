@@ -1,932 +1,1230 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestão de OS — Região dos Lagos</title>
-    
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    
-    <style>
-        :root {
-            --bg: #0f1117;
-            --surface: #1a1d27;
-            --surface-2: #232733;
-            --surface-3: #2c3040;
-            --border: rgba(255,255,255,0.06);
-            --border-light: rgba(255,255,255,0.1);
-            --text: #e4e6ed;
-            --text-dim: #8b8fa3;
-            --text-muted: #5c6078;
-            --accent: #4f8cff;
-            --accent-glow: rgba(79,140,255,0.15);
-            --accent-2: #6c5ce7;
-            --danger: #ff4757;
-            --danger-bg: rgba(255,71,87,0.1);
-            --success: #2ed573;
-            --success-bg: rgba(46,213,115,0.1);
-            --warning: #ffa502;
-            --warning-bg: rgba(255,165,2,0.1);
-            --radius: 8px;
-            --radius-lg: 12px;
-            --shadow: 0 4px 24px rgba(0,0,0,0.3);
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'DM Sans', sans-serif; display: flex; flex-direction: column; height: 100vh; background: var(--bg); color: var(--text); overflow: hidden; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
-        header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 20px; display: flex; justify-content: space-between; align-items: center; height: 52px; flex-shrink: 0; }
-        .logo { display: flex; align-items: center; gap: 10px; }
-        .logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
-        .logo h1 { font-size: 15px; font-weight: 600; letter-spacing: -0.3px; }
-        .logo h1 span { color: var(--accent); }
-        .header-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-        .hdr-btn { color: var(--text); background: var(--surface-2); border: 1px solid var(--border-light); padding: 7px 12px; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 12px; font-family: inherit; display: flex; align-items: center; gap: 5px; transition: all 0.2s; white-space: nowrap; }
-        .hdr-btn:hover { background: var(--surface-3); border-color: rgba(255,255,255,0.15); }
-        .hdr-btn.accent { background: var(--accent); border-color: var(--accent); color: white; }
-        .hdr-btn.accent:hover { filter: brightness(1.1); }
-        .hdr-btn.ai { background: transparent; border-color: var(--success); color: var(--success); }
-        .hdr-btn.ai:hover { background: var(--success-bg); }
-        .hdr-btn.purple { background: transparent; border-color: var(--accent-2); color: #a29bfe; }
-        .hdr-btn.purple:hover { background: rgba(108,92,231,0.1); }
-        .hdr-btn.upload-btn { background: var(--accent); border-color: var(--accent); color: white; }
-        .hdr-btn.generate { background: transparent; border-color: var(--warning); color: var(--warning); }
-        .hdr-btn.generate:hover { background: var(--warning-bg); }
-        .hdr-btn.github { background: transparent; border-color: #8b949e; color: #8b949e; }
-        .hdr-btn.github:hover { background: rgba(139,148,158,0.1); }
-        .hdr-btn.danger-btn { background: transparent; border-color: var(--danger); color: var(--danger); }
-        .hdr-btn.danger-btn:hover { background: var(--danger-bg); }
-        #container { display: flex; flex: 1; overflow: hidden; }
-        #sidebar { width: 240px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
-        .sidebar-title { padding: 12px 16px; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .sidebar-title button { background: var(--accent); color: white; border: none; padding: 4px 10px; border-radius: 5px; cursor: pointer; font-size: 11px; font-weight: 600; font-family: inherit; transition: filter 0.2s; }
-        .sidebar-title button:hover { filter: brightness(1.15); }
-        #team-list { flex: 1; overflow-y: auto; padding: 6px 0; }
-        .team-row { display: flex; align-items: center; padding: 8px 12px; margin: 2px 8px; border-radius: 6px; transition: all 0.15s; cursor: pointer; }
-        .team-row:hover { background: var(--surface-2); }
-        .team-row.inactive { opacity: 0.45; }
-        .team-settings-btn { font-size: 11px; width: 26px; height: 26px; display: flex; justify-content: center; align-items: center; border-radius: 6px; margin-right: 8px; cursor: pointer; background: var(--surface-3); border: none; color: var(--text-dim); transition: all 0.15s; flex-shrink: 0; }
-        .team-settings-btn:hover { background: var(--accent); color: white; }
-        .team-info { display: flex; flex-direction: column; width: 100%; }
-        .team-name { font-weight: 500; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
-        .status-badge { font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 600; }
-        .badge-os-count { background: var(--accent-glow); color: var(--accent); }
-        .badge-empty { background: var(--surface-3); color: var(--text-muted); }
-        #main-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        #filter-bar { background: var(--surface); padding: 10px 16px; border-bottom: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 12px; }
-        #filter-bar label { color: var(--text-dim); font-weight: 500; font-size: 11px; }
-        #filter-bar input, #filter-bar select { padding: 5px 10px; background: var(--surface-2); border: 1px solid var(--border-light); border-radius: 5px; font-size: 11px; width: 110px; color: var(--text); font-family: inherit; transition: border-color 0.2s; }
-        #filter-bar input:focus, #filter-bar select:focus { outline: none; border-color: var(--accent); }
-        #filter-bar input[type="date"] { width: 130px; color-scheme: dark; }
-        #filter-bar select { width: 130px; }
-        .btn-filter { background: var(--surface-3); color: var(--text-dim); border: 1px solid var(--border-light); padding: 5px 12px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size: 11px; font-family: inherit; transition: all 0.2s; }
-        .btn-filter:hover { background: var(--danger-bg); color: var(--danger); border-color: var(--danger); }
-        #table-container { background: var(--surface); border-bottom: 1px solid var(--border); overflow: auto; max-height: 35%; flex-shrink: 0; }
-        table { width: 100%; border-collapse: collapse; min-width: 1100px; font-size: 12px; }
-        thead { background: var(--surface-2); position: sticky; top: 0; z-index: 10; }
-        th { padding: 8px 10px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-dim); font-weight: 600; border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; transition: color 0.15s; }
-        th:hover { color: var(--accent); }
-        th.sorted-active { color: var(--accent); }
-        td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--border); color: var(--text); }
-        tbody tr { cursor: grab; transition: background 0.1s; }
-        tbody tr:active { cursor: grabbing; }
-        tbody tr:hover { background: rgba(79,140,255,0.05); }
-        tr.os-restricted { background: var(--danger-bg) !important; cursor: not-allowed; }
-        tr.os-restricted td { color: var(--danger); opacity: 0.7; }
-        .badge-restricao { background: var(--danger); color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 600; display: inline-block; }
-        .badge-servico { background: var(--accent-glow); color: var(--accent); padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 600; display: inline-block; }
-        .badge-solo { background: var(--warning-bg); color: var(--warning); padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 600; display: inline-block; }
-        .prazo-badge { padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; display: inline-block; white-space: nowrap; }
-        .prazo-critical { background: rgba(255,71,87,0.2); color: #ff6b7a; }
-        .prazo-warning { background: rgba(255,165,2,0.2); color: #ffb347; }
-        .prazo-attention { background: rgba(255,234,0,0.15); color: #ffe066; }
-        .prazo-ok { background: rgba(46,213,115,0.15); color: #5dde8f; }
-        .prazo-none { color: var(--text-muted); font-size: 10px; }
-        #map-container { flex: 1; width: 100%; position: relative; min-height: 200px; }
-        #map { width: 100%; height: 100%; z-index: 1; }
-        .leaflet-control-container .leaflet-top { z-index: 5; }
-        .leaflet-routing-container { display: none !important; }
-        #route-overlay { position: absolute; top: 10px; right: 10px; width: 340px; max-height: 90%; background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow), 0 0 0 1px var(--border-light); z-index: 1000; display: none; flex-direction: column; overflow: hidden; }
-        .overlay-header { background: var(--surface-2); padding: 12px 14px; font-weight: 600; font-size: 13px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
-        .overlay-header button { background: var(--surface-3); border: none; color: var(--text-dim); font-weight: bold; cursor: pointer; width: 24px; height: 24px; border-radius: 5px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
-        .overlay-header button:hover { background: var(--danger); color: white; }
-        .overlay-actions { padding: 8px 12px; background: var(--surface-2); border-bottom: 1px solid var(--border); text-align: center; }
-        .overlay-actions button { background: var(--accent); border: none; color: white; padding: 6px 12px; border-radius: 5px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; }
-        #drop-zone { flex: 1; padding: 10px; overflow-y: auto; min-height: 120px; background: var(--bg); }
-        #drop-zone.drag-over { background: var(--accent-glow); border: 2px dashed var(--accent); }
-        .empty-drop-msg { color: var(--text-muted); text-align: center; margin-top: 30px; font-size: 12px; font-weight: 500; }
-        .route-item { background: var(--surface); border: 1px solid var(--border-light); margin-bottom: 5px; padding: 8px 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; border-left: 3px solid var(--accent); }
-        .route-item-info { flex: 1; }
-        .route-item-info .route-prazo { font-size: 9px; margin-top: 2px; }
-        .route-btn { background: var(--surface-2); border: 1px solid var(--border-light); cursor: pointer; padding: 3px 6px; border-radius: 4px; font-size: 10px; margin-left: 2px; color: var(--text-dim); transition: all 0.15s; }
-        .route-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
-        .btn-remove { background: var(--danger-bg)!important; color: var(--danger)!important; border-color: var(--danger)!important; }
-        .btn-remove:hover { background: var(--danger)!important; color: white!important; }
-        .map-config-indicator { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: var(--danger); color: white; padding: 8px 20px; border-radius: 20px; font-size: 12px; font-weight: 600; z-index: 1000; display: none; box-shadow: 0 4px 16px rgba(255,71,87,0.4); animation: pulse-config 1.5s infinite; }
-        @keyframes pulse-config { 0%, 100% { box-shadow: 0 4px 16px rgba(255,71,87,0.4); } 50% { box-shadow: 0 4px 24px rgba(255,71,87,0.7); } }
-        .bairro-label { background: rgba(231,76,60,0.85); border: none; box-shadow: 0 2px 6px rgba(0,0,0,0.3); font-weight: bold; color: #ffffff; font-size: 11px; padding: 2px 8px; border-radius: 4px; }
-        .route-number-marker { background: var(--accent); color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; font-family: 'DM Sans', sans-serif; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 2000; justify-content: center; align-items: center; }
-        .modal { background: var(--surface); padding: 24px; border-radius: var(--radius-lg); width: 520px; max-width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow), 0 0 0 1px var(--border-light); }
-        .modal h2 { margin-bottom: 18px; font-size: 16px; font-weight: 600; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
-        .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; font-size: 11px; font-weight: 600; color: var(--text-dim); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
-        .form-group input[type="text"], .form-group input[type="number"], .form-group input[type="password"] { width: 100%; padding: 9px 12px; background: var(--surface-2); border: 1px solid var(--border-light); border-radius: 6px; font-size: 13px; color: var(--text); font-family: inherit; }
-        .form-group input:focus { outline: none; border-color: var(--accent); }
-        .checkbox-section { margin-bottom: 16px; }
-        .checkbox-section-title { font-size: 11px; font-weight: 600; color: var(--text-dim); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.3px; }
-        .checkbox-grid { display: flex; flex-wrap: wrap; gap: 6px; }
-        .chk-item { display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: var(--surface-2); border: 1px solid var(--border-light); border-radius: 6px; cursor: pointer; font-size: 12px; color: var(--text); transition: all 0.15s; user-select: none; }
-        .chk-item:hover { border-color: var(--accent); background: var(--accent-glow); }
-        .chk-item.checked { border-color: var(--accent); background: var(--accent-glow); color: var(--accent); }
-        .chk-item input[type="checkbox"] { appearance: none; -webkit-appearance: none; width: 14px; height: 14px; border: 2px solid var(--text-muted); border-radius: 3px; cursor: pointer; position: relative; flex-shrink: 0; transition: all 0.15s; }
-        .chk-item input[type="checkbox"]:checked { background: var(--accent); border-color: var(--accent); }
-        .chk-item input[type="checkbox"]:checked::after { content: '✓'; position: absolute; color: white; font-size: 10px; font-weight: bold; top: -1px; left: 1px; }
-        .no-services-msg { font-size: 11px; color: var(--text-muted); font-style: italic; padding: 6px 0; }
-        .btn-cancel { background: var(--surface-3); color: var(--text-dim); padding: 8px 16px; border: 1px solid var(--border-light); border-radius: 6px; cursor: pointer; font-size: 12px; font-family: inherit; font-weight: 500; }
-        .btn-save { background: var(--accent); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-family: inherit; font-weight: 600; }
-        .btn-save:hover { filter: brightness(1.1); }
-        .btn-delete { background: var(--danger-bg); color: var(--danger); padding: 8px 16px; border: 1px solid rgba(255,71,87,0.2); border-radius: 6px; cursor: pointer; font-size: 12px; font-family: inherit; font-weight: 500; }
-        .btn-delete:hover { background: var(--danger); color: white; }
-        .team-tags { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 3px; }
-        .team-tag { font-size: 8px; padding: 1px 5px; border-radius: 3px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.2px; }
-        .tag-option { background: rgba(46,213,115,0.12); color: var(--success); }
-        .tag-solo { background: var(--warning-bg); color: var(--warning); }
-        .tag-servico { background: var(--accent-glow); color: var(--accent); }
-        .modal-wide { width: 820px; }
-        .report-team-block { background: var(--surface-2); border: 1px solid var(--border-light); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; }
-        .report-team-header { padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 13px; border-bottom: 1px solid var(--border); background: var(--surface-3); }
-        .report-team-header .team-label { display: flex; align-items: center; gap: 8px; }
-        .report-team-stats { display: flex; gap: 12px; font-size: 11px; color: var(--text-dim); }
-        .report-team-stats span { display: flex; align-items: center; gap: 4px; }
-        .report-os-list { padding: 8px 14px; }
-        .report-os-item { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 11px; }
-        .report-os-item:last-child { border-bottom: none; }
-        .report-os-num { font-weight: 600; color: var(--accent); min-width: 40px; }
-        .report-os-detail { flex: 1; margin-left: 8px; }
-        .report-os-city { color: var(--text-dim); font-size: 10px; }
-        .report-summary { background: var(--surface-2); border: 1px solid var(--border-light); border-radius: var(--radius); padding: 14px; margin-bottom: 16px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-        .summary-card { text-align: center; }
-        .summary-card .val { font-size: 22px; font-weight: 700; color: var(--accent); }
-        .summary-card .lbl { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.3px; margin-top: 2px; }
-        .report-unassigned { background: var(--danger-bg); border: 1px solid rgba(255,71,87,0.2); border-radius: var(--radius); padding: 10px 14px; margin-top: 12px; font-size: 11px; color: var(--danger); }
-        .report-unassigned strong { display: block; margin-bottom: 4px; font-size: 12px; }
-        .gen-config-row { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; }
-        .gen-config-row label { font-size: 12px; color: var(--text); min-width: 160px; }
-        .gen-config-row input[type="number"] { width: 70px; padding: 6px 10px; background: var(--surface-2); border: 1px solid var(--border-light); border-radius: 6px; color: var(--text); font-family: inherit; font-size: 13px; }
-        .gen-info { background: var(--accent-glow); border: 1px solid rgba(79,140,255,0.2); border-radius: var(--radius); padding: 10px 14px; font-size: 11px; color: var(--accent); line-height: 1.6; margin-bottom: 16px; }
-        .svc-type-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-        .svc-type-chip { display: flex; align-items: center; gap: 4px; padding: 5px 10px; background: var(--surface-2); border: 1px solid var(--border-light); border-radius: 6px; font-size: 12px; color: var(--text); }
-        .svc-type-chip .chip-remove { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 14px; font-weight: bold; padding: 0 2px; line-height: 1; }
-        .svc-type-chip .chip-remove:hover { color: #ff8a94; }
-        .add-svc-row { display: flex; gap: 6px; margin-bottom: 16px; }
-        .add-svc-row input { flex: 1; padding: 7px 10px; background: var(--surface-2); border: 1px solid var(--border-light); border-radius: 6px; font-size: 12px; color: var(--text); font-family: inherit; }
-        .add-svc-row input:focus { outline: none; border-color: var(--accent); }
-        .add-svc-row button { background: var(--accent); color: white; border: none; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; font-family: inherit; white-space: nowrap; }
-        .section-divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FieldVision PRO — Análise de Ordens de Serviço</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+
+:root {
+  --bg-primary: #0a0c10;
+  --bg-secondary: #12151c;
+  --bg-card: #181c26;
+  --bg-card-hover: #1e2330;
+  --bg-elevated: #222838;
+  --border: #2a3040;
+  --border-hover: #3a4560;
+  --text-primary: #e8ecf4;
+  --text-secondary: #8892a8;
+  --text-muted: #5a6478;
+  --accent-red: #ff4d6a;
+  --accent-red-dim: rgba(255,77,106,0.12);
+  --accent-orange: #ff8c42;
+  --accent-orange-dim: rgba(255,140,66,0.12);
+  --accent-yellow: #ffd166;
+  --accent-yellow-dim: rgba(255,209,102,0.12);
+  --accent-green: #06d6a0;
+  --accent-green-dim: rgba(6,214,160,0.12);
+  --accent-blue: #4dabf7;
+  --accent-blue-dim: rgba(77,171,247,0.12);
+  --accent-purple: #b197fc;
+  --accent-purple-dim: rgba(177,151,252,0.12);
+  --accent-cyan: #22d3ee;
+  --accent-cyan-dim: rgba(34,211,238,0.12);
+  --accent-pink: #f472b6;
+  --accent-pink-dim: rgba(244,114,182,0.12);
+  --solo-asfalto: #4dabf7;
+  --solo-terra: #c68642;
+  --solo-bloco: #a0aec0;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-secondary); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
+
+/* HEADER */
+.header {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+}
+.header-left { display: flex; align-items: center; gap: 16px; }
+.logo {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.logo-sub { font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; letter-spacing: 2px; text-transform: uppercase; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.date-display { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-secondary); background: var(--bg-card); padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+
+/* UPLOAD ZONE */
+.upload-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 70px);
+  padding: 40px;
+  animation: fadeIn 0.5s ease;
+}
+.upload-box {
+  width: 100%;
+  max-width: 560px;
+  border: 2px dashed var(--border);
+  border-radius: 16px;
+  padding: 60px 40px;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition);
+  background: var(--bg-card);
+  position: relative;
+  overflow: hidden;
+}
+.upload-box::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(34,211,238,0.06), transparent 60%);
+  pointer-events: none;
+}
+.upload-box:hover { border-color: var(--accent-cyan); background: var(--bg-card-hover); transform: translateY(-2px); box-shadow: var(--shadow); }
+.upload-box.dragover { border-color: var(--accent-cyan); background: rgba(34,211,238,0.05); }
+.upload-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.8; }
+.upload-title { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+.upload-desc { color: var(--text-secondary); font-size: 14px; margin-bottom: 24px; }
+.upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.upload-btn:hover { transform: scale(1.04); box-shadow: 0 4px 20px rgba(34,211,238,0.3); }
+#fileInput { display: none; }
+
+/* MAIN DASHBOARD */
+.dashboard { display: none; padding: 24px 32px; animation: fadeIn 0.4s ease; }
+
+/* KPI ROW */
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px; }
+.kpi-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+.kpi-card:hover { border-color: var(--border-hover); transform: translateY(-2px); box-shadow: var(--shadow); }
+.kpi-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 8px; }
+.kpi-value { font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 700; }
+.kpi-sub { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+.kpi-card.total::before { background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue)); }
+.kpi-card.total .kpi-value { color: var(--accent-cyan); }
+.kpi-card.vencido::before { background: var(--accent-red); }
+.kpi-card.vencido .kpi-value { color: var(--accent-red); }
+.kpi-card.pegar-cedo::before { background: var(--accent-orange); }
+.kpi-card.pegar-cedo .kpi-value { color: var(--accent-orange); }
+.kpi-card.retro::before { background: var(--accent-yellow); }
+.kpi-card.retro .kpi-value { color: var(--accent-yellow); }
+.kpi-card.rede::before { background: var(--accent-purple); }
+.kpi-card.rede .kpi-value { color: var(--accent-purple); }
+.kpi-card.restricao::before { background: var(--accent-pink); }
+.kpi-card.restricao .kpi-value { color: var(--accent-pink); }
+.kpi-card.normal::before { background: var(--accent-green); }
+.kpi-card.normal .kpi-value { color: var(--accent-green); }
+
+/* TABS */
+.tabs-bar {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+  flex-wrap: wrap;
+}
+.tab-btn {
+  padding: 10px 20px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tab-btn:hover { color: var(--text-primary); background: var(--bg-card); }
+.tab-btn.active { color: #fff; background: var(--bg-elevated); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+.tab-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+/* TAB PANELS */
+.tab-panel { display: none; animation: fadeIn 0.3s ease; }
+.tab-panel.active { display: block; }
+
+/* TABLE STYLES */
+.os-table-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.os-table-title {
+  padding: 14px 20px;
+  font-weight: 600;
+  font-size: 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-elevated);
+}
+.os-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.os-table thead th {
+  background: var(--bg-secondary);
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  white-space: nowrap;
+}
+.os-table tbody tr { border-bottom: 1px solid rgba(42,48,64,0.5); transition: var(--transition); }
+.os-table tbody tr:hover { background: var(--bg-card-hover); }
+.os-table td { padding: 10px 14px; white-space: nowrap; }
+.os-table td.wrap { white-space: normal; max-width: 200px; }
+
+/* BADGES */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+.badge-vencido { background: var(--accent-red-dim); color: var(--accent-red); }
+.badge-pegar-cedo { background: var(--accent-orange-dim); color: var(--accent-orange); }
+.badge-retro { background: var(--accent-yellow-dim); color: var(--accent-yellow); }
+.badge-rede { background: var(--accent-purple-dim); color: var(--accent-purple); }
+.badge-normal { background: var(--accent-green-dim); color: var(--accent-green); }
+.badge-restricao { background: var(--accent-pink-dim); color: var(--accent-pink); }
+
+.badge-solo {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.badge-solo.asfalto { background: rgba(77,171,247,0.1); color: var(--solo-asfalto); }
+.badge-solo.terra { background: rgba(198,134,66,0.1); color: var(--solo-terra); }
+.badge-solo.bloco { background: rgba(160,174,192,0.1); color: var(--solo-bloco); }
+
+.prazo-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+}
+.prazo-indicator.critico { color: var(--accent-red); }
+.prazo-indicator.urgente { color: var(--accent-orange); }
+.prazo-indicator.atencao { color: var(--accent-yellow); }
+.prazo-indicator.ok { color: var(--accent-green); }
+
+/* CITY/BAIRRO SECTION */
+.geo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; }
+.city-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: var(--transition);
+}
+.city-card:hover { border-color: var(--border-hover); }
+.city-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+.city-name { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+.city-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  background: var(--accent-cyan-dim);
+  color: var(--accent-cyan);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+.city-body { padding: 0; }
+.bairro-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  border-bottom: 1px solid rgba(42,48,64,0.3);
+  transition: var(--transition);
+  cursor: pointer;
+}
+.bairro-item:hover { background: var(--bg-card-hover); }
+.bairro-item:last-child { border-bottom: none; }
+.bairro-name { font-size: 13px; font-weight: 500; }
+.bairro-meta { display: flex; align-items: center; gap: 8px; }
+.bairro-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.bairro-bar-bg {
+  width: 60px; height: 6px;
+  background: var(--bg-primary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.bairro-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+
+/* AI PANEL */
+.ai-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-top: 0;
+}
+.ai-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  background: linear-gradient(135deg, rgba(34,211,238,0.06), rgba(77,171,247,0.04));
+  border-bottom: 1px solid var(--border);
+}
+.ai-title { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+.ai-btn {
+  padding: 10px 24px;
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ai-btn:hover { transform: scale(1.03); box-shadow: 0 4px 20px rgba(34,211,238,0.25); }
+.ai-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+.ai-body { padding: 24px; min-height: 200px; }
+.ai-placeholder { color: var(--text-muted); text-align: center; padding: 40px; font-size: 14px; }
+.ai-loading { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 40px; color: var(--accent-cyan); }
+.ai-loading .spinner { width: 20px; height: 20px; border: 2px solid rgba(34,211,238,0.2); border-top-color: var(--accent-cyan); border-radius: 50%; animation: spin 0.8s linear infinite; }
+.ai-result { line-height: 1.7; font-size: 14px; color: var(--text-primary); }
+.ai-result h3 { font-size: 15px; font-weight: 700; margin: 20px 0 10px; color: var(--accent-cyan); display: flex; align-items: center; gap: 8px; }
+.ai-result h3:first-child { margin-top: 0; }
+.ai-result p { margin-bottom: 10px; color: var(--text-secondary); }
+.ai-result strong { color: var(--text-primary); }
+.ai-result ul { padding-left: 20px; margin-bottom: 10px; }
+.ai-result li { margin-bottom: 6px; color: var(--text-secondary); }
+.ai-result .highlight-box {
+  background: var(--bg-elevated);
+  border-left: 3px solid var(--accent-cyan);
+  padding: 14px 18px;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin: 12px 0;
+}
+.ai-result .priority-item {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.ai-result .priority-rank {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 16px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.ai-result .priority-rank.r1 { background: var(--accent-red-dim); color: var(--accent-red); }
+.ai-result .priority-rank.r2 { background: var(--accent-orange-dim); color: var(--accent-orange); }
+.ai-result .priority-rank.r3 { background: var(--accent-yellow-dim); color: var(--accent-yellow); }
+
+/* MODAL */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+  animation: slideUp 0.3s ease;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--bg-card);
+  z-index: 1;
+}
+.modal-header h2 { font-size: 18px; font-weight: 700; }
+.modal-close {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: var(--transition);
+}
+.modal-close:hover { background: var(--accent-red-dim); color: var(--accent-red); border-color: var(--accent-red); }
+.modal-body { padding: 24px; }
+
+/* SOLO LEGEND */
+.solo-legend {
+  display: flex;
+  gap: 16px;
+  padding: 12px 20px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.solo-legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+.solo-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+/* FILTER BAR */
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.filter-bar select, .filter-bar input {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  transition: var(--transition);
+}
+.filter-bar select:focus, .filter-bar input:focus { outline: none; border-color: var(--accent-cyan); }
+.filter-bar label { font-size: 12px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }
+.filter-group { display: flex; flex-direction: column; gap: 4px; }
+
+/* SUMMARY BAR */
+.summary-bar {
+  display: flex;
+  gap: 16px;
+  padding: 12px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.summary-item { font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
+.summary-item strong { color: var(--text-primary); font-family: 'JetBrains Mono', monospace; }
+
+/* TABLE MAX HEIGHT */
+.table-scroll { max-height: 500px; overflow-y: auto; }
+
+/* ANIMATIONS */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .header { padding: 12px 16px; }
+  .dashboard { padding: 16px; }
+  .kpi-row { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+  .geo-grid { grid-template-columns: 1fr; }
+  .tabs-bar { gap: 2px; padding: 3px; }
+  .tab-btn { padding: 8px 12px; font-size: 12px; }
+}
+
+/* Empty state */
+.empty-state { text-align: center; padding: 40px; color: var(--text-muted); }
+.empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+
+/* Priority score circle */
+.priority-circle {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+</style>
 </head>
 <body>
-    <header>
-        <div class="logo">
-            <div class="logo-icon">⚡</div>
-            <h1>Gestão<span>OS</span> <small style="font-size:10px;color:var(--text-muted);font-weight:400;margin-left:4px">Região dos Lagos</small></h1>
-        </div>
-        <div class="header-actions">
-            <button class="hdr-btn generate" onclick="openGenerateModal()">🚀 Gerar Rotas</button>
-            <button class="hdr-btn danger-btn" onclick="clearAllTeamRoutes()">🧹 Limpar Rotas</button>
-            <button class="hdr-btn ai" onclick="openAIAnalysis()">🤖 Análise</button>
-            <button class="hdr-btn github" onclick="githubPull()">⬇ Puxar</button>
-            <button class="hdr-btn github" onclick="githubSave()">⬆ Salvar</button>
-            <button class="hdr-btn" onclick="openSettingsModal()" style="border-color:var(--text-muted);color:var(--text-muted)">⚙️ Config</button>
-            <button id="btn-map-config" class="hdr-btn purple" onclick="toggleMapConfig()">🗺️ Configurar Bairros</button>
-            <label class="hdr-btn upload-btn" style="cursor:pointer">
-                📥 Carregar Excel
-                <input type="file" id="excel-upload" accept=".xlsx, .xls, .csv" style="display: none;" onchange="handleExcelUpload(event)">
-            </label>
-        </div>
-    </header>
-    <div id="container">
-        <div id="sidebar">
-            <div class="sidebar-title">Equipes <button onclick="openTeamModal(null)">+ Nova</button></div>
-            <div id="team-list"></div>
-        </div>
-        <div id="main-area">
-            <div id="filter-bar">
-                <label>Filtros:</label>
-                <select id="flt-cidade" onchange="applyFilters()"><option value="">Todas Cidades</option><option value="IGUABA GRANDE">Iguaba Grande</option><option value="ARRAIAL DO CABO">Arraial do Cabo</option><option value="SAO PEDRO DA ALDEIA">São Pedro da Aldeia</option><option value="CABO FRIO">Cabo Frio</option><option value="BUZIOS">Búzios</option><option value="TAMOIOS">Tamoios</option></select>
-                <input type="text" id="flt-bairro" placeholder="Bairro..." onkeyup="applyFilters()">
-                <input type="text" id="flt-os" placeholder="OS..." onkeyup="applyFilters()">
-                <input type="text" id="flt-mat" placeholder="Matrícula..." onkeyup="applyFilters()">
-                <input type="text" id="flt-obs" placeholder="Obs... (none = sem obs)" onkeyup="applyFilters()">
-                <!-- Filtro por equipe: lista dinâmica de equipes e opção para sem equipe -->
-                <select id="flt-equipe" onchange="applyFilters()" style="min-width:120px;">
-                    <option value="">Todas Equipes</option>
-                    <option value="none">Sem Equipe</option>
-                </select>
-                <label>Data:</label>
-                <input type="date" id="flt-data-ini" onchange="applyFilters()">
-                <span style="color:var(--text-muted)">até</span>
-                <input type="date" id="flt-data-fim" onchange="applyFilters()">
-                <button class="btn-filter" onclick="clearFilters()">✕ Limpar</button>
-            </div>
-            <div id="table-container">
-                <table><thead><tr>
-                    <th onclick="sortTable('matricula')">Matrícula</th><th onclick="sortTable('os')">OS</th><th onclick="sortTable('cidade')">Cidade</th><th onclick="sortTable('bairro')">Bairro</th><th onclick="sortTable('obs1')">Observação</th><th onclick="sortTable('restricao')">Restrição</th><th onclick="sortTable('prazo')">Prazo</th><th onclick="sortTable('servico')">Tipo Serviço</th><th onclick="sortTable('solo')">Solo</th><th onclick="sortTable('equipe')">Equipe</th>
-                </tr></thead><tbody id="os-table-body"></tbody></table>
-            </div>
-            <div id="map-container">
-                <div id="map"></div>
-                <div class="map-config-indicator" id="map-config-indicator">🎯 Modo Configuração — Clique no mapa para adicionar bairros. Clique "Configurar Bairros" para sair.</div>
-                <div id="route-overlay">
-                    <div class="overlay-header"><span id="overlay-title">Equipe X</span><button onclick="closeRouteOverlay()">✕</button></div>
-                    <div class="overlay-actions"><button onclick="reorderByProximity()">🔃 Reordenar p/ Proximidade</button></div>
-                    <div id="drop-zone" ondrop="dropOS(event)" ondragover="allowDrop(event)" ondragleave="leaveDrop(event)">
-                        <div class="empty-drop-msg">Arraste as OS da tabela e solte aqui para programar.</div>
-                        <ul id="overlay-route-list" style="list-style: none; padding: 0;"></ul>
-                    </div>
-                </div>
-            </div>
-        </div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div>
+      <div class="logo">FieldVision PRO</div>
+      <div class="logo-sub">Análise Visual de OS</div>
     </div>
+  </div>
+  <div class="header-right">
+    <div class="date-display" id="todayDate"></div>
+  </div>
+</div>
 
-    <!-- Modal Configurar Equipe -->
-    <div id="modal-team" class="modal-overlay"><div class="modal">
-        <h2 id="team-modal-title">⚙️ Configurar Equipe</h2>
-        <input type="hidden" id="team-id">
-        <div class="form-group"><label>Nome da Equipe</label><input type="text" id="team-name" placeholder="Ex: CSCT-01"></div>
-        <div class="checkbox-section">
-            <div class="checkbox-section-title">Opções</div>
-            <div class="checkbox-grid" id="team-opcoes">
-                <label class="chk-item" onclick="toggleChk(this)"><input type="checkbox" value="pegar_cedo"> Pegar Cedo</label>
-                <label class="chk-item" onclick="toggleChk(this)"><input type="checkbox" value="retro"> Retro</label>
-                <label class="chk-item" onclick="toggleChk(this)"><input type="checkbox" value="desempenho"> Desempenho</label>
-            </div>
+<!-- UPLOAD -->
+<div class="upload-zone" id="uploadZone">
+  <div class="upload-box" id="uploadBox">
+    <div class="upload-icon">📊</div>
+    <div class="upload-title">Carregar Planilha de OS</div>
+    <div class="upload-desc">Arraste o arquivo .xlsx ou clique para selecionar</div>
+    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+      ⬆ Selecionar Arquivo
+    </button>
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="dashboard" id="dashboard">
+
+  <!-- KPI ROW -->
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <!-- TABS -->
+  <div class="tabs-bar" id="tabsBar"></div>
+
+  <!-- TAB: OVERVIEW -->
+  <div class="tab-panel active" id="panel-overview">
+    <div class="solo-legend">
+      <div class="solo-legend-item"><div class="solo-dot" style="background:var(--solo-asfalto)"></div> Asfalto</div>
+      <div class="solo-legend-item"><div class="solo-dot" style="background:var(--solo-terra)"></div> Terra</div>
+      <div class="solo-legend-item"><div class="solo-dot" style="background:var(--solo-bloco)"></div> Bloco/Paralelo</div>
+    </div>
+    <div class="filter-bar" id="filterBar">
+      <div class="filter-group">
+        <label>Cidade</label>
+        <select id="filterCidade"><option value="">Todas</option></select>
+      </div>
+      <div class="filter-group">
+        <label>Solo</label>
+        <select id="filterSolo"><option value="">Todos</option></select>
+      </div>
+      <div class="filter-group">
+        <label>Buscar OS</label>
+        <input type="text" id="filterOS" placeholder="Nº OS ou matrícula...">
+      </div>
+    </div>
+    <div class="os-table-wrap">
+      <div class="table-scroll" id="overviewTable"></div>
+    </div>
+  </div>
+
+  <!-- TAB: VENCIDO -->
+  <div class="tab-panel" id="panel-vencido">
+    <div class="os-table-wrap">
+      <div class="os-table-title" style="color:var(--accent-red)">⚠ Ordens de Serviço Vencidas — Ação Imediata</div>
+      <div class="table-scroll" id="vencidoTable"></div>
+    </div>
+  </div>
+
+  <!-- TAB: PEGAR CEDO -->
+  <div class="tab-panel" id="panel-pegar-cedo">
+    <div class="os-table-wrap">
+      <div class="os-table-title" style="color:var(--accent-orange)">🔶 Pegar Cedo</div>
+      <div class="table-scroll" id="pegarCedoTable"></div>
+    </div>
+  </div>
+
+  <!-- TAB: RETRO -->
+  <div class="tab-panel" id="panel-retro">
+    <div class="os-table-wrap">
+      <div class="os-table-title" style="color:var(--accent-yellow)">🔄 Retro</div>
+      <div class="table-scroll" id="retroTable"></div>
+    </div>
+  </div>
+
+  <!-- TAB: REDE NÃO LOCALIZADA -->
+  <div class="tab-panel" id="panel-rede">
+    <div class="os-table-wrap">
+      <div class="os-table-title" style="color:var(--accent-purple)">🔍 Rede Não Localizada</div>
+      <div class="table-scroll" id="redeTable"></div>
+    </div>
+  </div>
+
+  <!-- TAB: RESTRIÇÃO -->
+  <div class="tab-panel" id="panel-restricao">
+    <div class="os-table-wrap">
+      <div class="os-table-title" style="color:var(--accent-pink)">🚫 Com Restrição</div>
+      <div class="table-scroll" id="restricaoTable"></div>
+    </div>
+  </div>
+
+  <!-- TAB: NORMAL -->
+  <div class="tab-panel" id="panel-normal">
+    <div class="os-table-wrap">
+      <div class="os-table-title" style="color:var(--accent-green)">✅ Sem Marcação Especial</div>
+      <div class="table-scroll" id="normalTable"></div>
+    </div>
+  </div>
+
+  <!-- TAB: CIDADES -->
+  <div class="tab-panel" id="panel-cidades">
+    <div class="geo-grid" id="geoGrid"></div>
+  </div>
+
+  <!-- TAB: AI -->
+  <div class="tab-panel" id="panel-ai">
+    <div class="ai-section">
+      <div class="ai-header">
+        <div class="ai-title">🧠 Análise Inteligente — IA Avançada</div>
+        <button class="ai-btn" id="aiBtn" onclick="runAI()">⚡ Gerar Análise</button>
+      </div>
+      <div class="ai-body" id="aiBody">
+        <div class="ai-placeholder">
+          Clique em <strong>Gerar Análise</strong> para que a IA processe todas as ordens de serviço e recomende a melhor estratégia de execução considerando prazos, proximidade geográfica, tipo de solo e prioridades.
         </div>
-        <div class="checkbox-section">
-            <div class="checkbox-section-title">Tipo de Solo</div>
-            <div class="checkbox-grid" id="team-solo">
-                <label class="chk-item" onclick="toggleChk(this)"><input type="checkbox" value="terra"> Terra</label>
-                <label class="chk-item" onclick="toggleChk(this)"><input type="checkbox" value="asfalto"> Asfalto</label>
-                <label class="chk-item" onclick="toggleChk(this)"><input type="checkbox" value="bloco_paralelo"> Bloco Paralelo</label>
-            </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Detalhes</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════ GLOBALS ═══════════════════════
+let allOS = [];
+const TODAY = new Date();
+TODAY.setHours(0,0,0,0);
+
+document.getElementById('todayDate').textContent = TODAY.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+// ═══════════════════════ FILE LOADING ═══════════════════════
+const uploadBox = document.getElementById('uploadBox');
+const fileInput = document.getElementById('fileInput');
+
+uploadBox.addEventListener('dragover', e => { e.preventDefault(); uploadBox.classList.add('dragover'); });
+uploadBox.addEventListener('dragleave', () => uploadBox.classList.remove('dragover'));
+uploadBox.addEventListener('drop', e => { e.preventDefault(); uploadBox.classList.remove('dragover'); if (e.dataTransfer.files.length) processFile(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change', e => { if (e.target.files.length) processFile(e.target.files[0]); });
+
+function processFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array', cellDates: true });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+    parseData(rows);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function parseData(rows) {
+  allOS = rows.map((r, i) => {
+    const obs = (r['Observação'] || '').toString().trim();
+    const rest = (r['Restrição'] || '').toString().trim();
+    const dataVenc = parseExcelDate(r['Data de Vencimento']);
+    const dataGer = parseExcelDate(r['Data da Geração']);
+    const diasVenc = dataVenc ? Math.ceil((dataVenc - TODAY) / 86400000) : null;
+
+    let categoria = 'normal';
+    if (rest) categoria = 'restricao';
+    else if (/rede\s*(não|nao)\s*localizada/i.test(obs)) categoria = 'rede';
+    else if (/retro/i.test(obs)) categoria = 'retro';
+    else if (/pegar\s*cedo/i.test(obs)) categoria = 'pegar-cedo';
+
+    const vencido = diasVenc !== null && diasVenc < 0;
+
+    let solo = (r['Tipo de Solo'] || '').toString().trim().toUpperCase();
+    let soloClass = 'terra';
+    if (/asfalto/i.test(solo)) soloClass = 'asfalto';
+    else if (/bloco|paralelo/i.test(solo)) soloClass = 'bloco';
+
+    return {
+      id: i,
+      matricula: (r['Matricula'] || '').toString().trim(),
+      os: (r['OS'] || '').toString().trim(),
+      cidade: (r['Cidade'] || '').toString().trim(),
+      bairro: (r['Bairro'] || '').toString().trim(),
+      obs,
+      restricao: rest,
+      dataGeracao: dataGer,
+      dataVencimento: dataVenc,
+      diasVencimento: diasVenc,
+      vencido,
+      lat: parseFloat(r['Latitude']) || null,
+      lng: parseFloat(r['Longitude']) || null,
+      tipoServico: (r['Tipo de Serviço'] || '').toString().trim(),
+      solo,
+      soloClass,
+      categoria
+    };
+  });
+
+  document.getElementById('uploadZone').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  buildDashboard();
+}
+
+function parseExcelDate(v) {
+  if (!v) return null;
+  if (v instanceof Date) return v;
+  if (typeof v === 'number') {
+    const d = new Date((v - 25569) * 86400000);
+    return d;
+  }
+  const d = new Date(v);
+  return isNaN(d) ? null : d;
+}
+
+// ═══════════════════════ BUILD DASHBOARD ═══════════════════════
+function buildDashboard() {
+  buildKPIs();
+  buildTabs();
+  buildFilters();
+  renderAllPanels();
+}
+
+function getCategories() {
+  const cats = { vencido: [], 'pegar-cedo': [], retro: [], rede: [], restricao: [], normal: [] };
+  allOS.forEach(os => {
+    if (os.vencido && os.categoria !== 'restricao') cats.vencido.push(os);
+    if (os.categoria === 'restricao') cats.restricao.push(os);
+    else if (os.categoria === 'rede') cats.rede.push(os);
+    else if (os.categoria === 'retro') cats.retro.push(os);
+    else if (os.categoria === 'pegar-cedo') cats['pegar-cedo'].push(os);
+    else cats.normal.push(os);
+  });
+  return cats;
+}
+
+function buildKPIs() {
+  const cats = getCategories();
+  const kpis = [
+    { label: 'Total de OS', value: allOS.length, cls: 'total', sub: `${new Set(allOS.map(o=>o.cidade)).size} cidades` },
+    { label: 'Vencidas', value: cats.vencido.length, cls: 'vencido', sub: 'Prazo expirado' },
+    { label: 'Pegar Cedo', value: cats['pegar-cedo'].length, cls: 'pegar-cedo', sub: 'Prioridade manhã' },
+    { label: 'Retro', value: cats.retro.length, cls: 'retro', sub: 'Retorno ao local' },
+    { label: 'Rede N/L', value: cats.rede.length, cls: 'rede', sub: 'Rede não localizada' },
+    { label: 'Restrição', value: cats.restricao.length, cls: 'restricao', sub: 'Impedimento' },
+    { label: 'Sem Marcação', value: cats.normal.length, cls: 'normal', sub: 'Padrão' }
+  ];
+  document.getElementById('kpiRow').innerHTML = kpis.map(k => `
+    <div class="kpi-card ${k.cls}">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-value">${k.value}</div>
+      <div class="kpi-sub">${k.sub}</div>
+    </div>
+  `).join('');
+}
+
+function buildTabs() {
+  const cats = getCategories();
+  const tabs = [
+    { id: 'overview', label: '📋 Visão Geral', count: allOS.length },
+    { id: 'vencido', label: '⚠ Vencidas', count: cats.vencido.length, color: 'var(--accent-red)' },
+    { id: 'pegar-cedo', label: '🔶 Pegar Cedo', count: cats['pegar-cedo'].length, color: 'var(--accent-orange)' },
+    { id: 'retro', label: '🔄 Retro', count: cats.retro.length, color: 'var(--accent-yellow)' },
+    { id: 'rede', label: '🔍 Rede N/L', count: cats.rede.length, color: 'var(--accent-purple)' },
+    { id: 'restricao', label: '🚫 Restrição', count: cats.restricao.length, color: 'var(--accent-pink)' },
+    { id: 'normal', label: '✅ Sem Marcação', count: cats.normal.length, color: 'var(--accent-green)' },
+    { id: 'cidades', label: '🏙 Cidades', count: new Set(allOS.map(o=>o.cidade)).size },
+    { id: 'ai', label: '🧠 IA Avançada', count: null }
+  ];
+  document.getElementById('tabsBar').innerHTML = tabs.map((t, i) => `
+    <button class="tab-btn ${i===0?'active':''}" onclick="switchTab('${t.id}', this)">
+      ${t.label}
+      ${t.count !== null ? `<span class="tab-badge" style="background:${t.color || 'var(--bg-elevated)'};color:${t.color ? '#fff' : 'var(--text-secondary)'}">${t.count}</span>` : ''}
+    </button>
+  `).join('');
+}
+
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-' + id).classList.add('active');
+}
+
+function buildFilters() {
+  const cidades = [...new Set(allOS.map(o => o.cidade))].sort();
+  const solos = [...new Set(allOS.map(o => o.solo).filter(Boolean))].sort();
+  const cidSel = document.getElementById('filterCidade');
+  cidades.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; cidSel.appendChild(o); });
+  const soloSel = document.getElementById('filterSolo');
+  solos.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; soloSel.appendChild(o); });
+  cidSel.addEventListener('change', () => renderOverview());
+  soloSel.addEventListener('change', () => renderOverview());
+  document.getElementById('filterOS').addEventListener('input', () => renderOverview());
+}
+
+// ═══════════════════════ RENDER PANELS ═══════════════════════
+function renderAllPanels() {
+  renderOverview();
+  const cats = getCategories();
+  renderTable('vencidoTable', cats.vencido.sort((a,b) => a.diasVencimento - b.diasVencimento));
+  renderTable('pegarCedoTable', cats['pegar-cedo'].sort((a,b) => (a.diasVencimento||99) - (b.diasVencimento||99)));
+  renderTable('retroTable', cats.retro.sort((a,b) => (a.diasVencimento||99) - (b.diasVencimento||99)));
+  renderTable('redeTable', cats.rede.sort((a,b) => (a.diasVencimento||99) - (b.diasVencimento||99)));
+  renderTable('restricaoTable', cats.restricao.sort((a,b) => (a.diasVencimento||99) - (b.diasVencimento||99)));
+  renderTable('normalTable', cats.normal.sort((a,b) => (a.diasVencimento||99) - (b.diasVencimento||99)));
+  renderCidades();
+}
+
+function renderOverview() {
+  const cidF = document.getElementById('filterCidade').value;
+  const soloF = document.getElementById('filterSolo').value;
+  const osF = document.getElementById('filterOS').value.trim().toLowerCase();
+  let filtered = allOS.filter(o => {
+    if (cidF && o.cidade !== cidF) return false;
+    if (soloF && o.solo !== soloF) return false;
+    if (osF && !o.os.toLowerCase().includes(osF) && !o.matricula.toLowerCase().includes(osF)) return false;
+    return true;
+  });
+  filtered.sort((a,b) => (a.diasVencimento||99) - (b.diasVencimento||99));
+  renderTable('overviewTable', filtered, true);
+}
+
+function renderTable(containerId, data, showCategoria = false) {
+  if (!data.length) {
+    document.getElementById(containerId).innerHTML = '<div class="empty-state"><div class="icon">📭</div>Nenhuma OS encontrada</div>';
+    return;
+  }
+  let html = `<table class="os-table"><thead><tr>
+    <th>OS</th><th>Matrícula</th><th>Cidade</th><th>Bairro</th>
+    ${showCategoria ? '<th>Categoria</th>' : ''}
+    <th>Solo</th><th>Prazo</th><th>Vencimento</th><th>Obs</th><th>Restrição</th>
+  </tr></thead><tbody>`;
+  data.forEach(os => {
+    html += `<tr onclick="showOSDetail(${os.id})" style="cursor:pointer">
+      <td><strong style="font-family:'JetBrains Mono',monospace;font-size:12px">${os.os}</strong></td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:12px">${os.matricula}</td>
+      <td>${os.cidade}</td>
+      <td>${os.bairro}</td>
+      ${showCategoria ? `<td>${getCatBadge(os)}</td>` : ''}
+      <td><span class="badge-solo ${os.soloClass}">● ${os.solo || '—'}</span></td>
+      <td>${getPrazoIndicator(os)}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:12px">${os.dataVencimento ? os.dataVencimento.toLocaleDateString('pt-BR') : '—'}</td>
+      <td class="wrap">${os.obs || '—'}</td>
+      <td class="wrap">${os.restricao ? `<span class="badge badge-restricao">${os.restricao}</span>` : '—'}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById(containerId).innerHTML = html;
+}
+
+function getCatBadge(os) {
+  if (os.vencido && os.categoria !== 'restricao') return '<span class="badge badge-vencido">⚠ VENCIDA</span>';
+  const map = {
+    'pegar-cedo': ['badge-pegar-cedo', '🔶 Pegar Cedo'],
+    'retro': ['badge-retro', '🔄 Retro'],
+    'rede': ['badge-rede', '🔍 Rede N/L'],
+    'restricao': ['badge-restricao', '🚫 Restrição'],
+    'normal': ['badge-normal', '✅ Normal']
+  };
+  const [cls, lbl] = map[os.categoria] || map.normal;
+  return `<span class="badge ${cls}">${lbl}</span>`;
+}
+
+function getPrazoIndicator(os) {
+  if (os.diasVencimento === null) return '<span class="prazo-indicator ok">—</span>';
+  const d = os.diasVencimento;
+  let cls, icon;
+  if (d < 0) { cls = 'critico'; icon = '🔴'; }
+  else if (d === 0) { cls = 'critico'; icon = '🔴'; }
+  else if (d <= 2) { cls = 'urgente'; icon = '🟠'; }
+  else if (d <= 5) { cls = 'atencao'; icon = '🟡'; }
+  else { cls = 'ok'; icon = '🟢'; }
+  const label = d < 0 ? `${Math.abs(d)}d atrás` : d === 0 ? 'HOJE' : `${d}d`;
+  return `<span class="prazo-indicator ${cls}">${icon} ${label}</span>`;
+}
+
+// ═══════════════════════ CIDADES/BAIRROS ═══════════════════════
+function renderCidades() {
+  const cidMap = {};
+  allOS.forEach(os => {
+    if (!cidMap[os.cidade]) cidMap[os.cidade] = {};
+    if (!cidMap[os.cidade][os.bairro]) cidMap[os.cidade][os.bairro] = [];
+    cidMap[os.cidade][os.bairro].push(os);
+  });
+
+  const maxBairro = Math.max(...Object.values(cidMap).flatMap(b => Object.values(b).map(arr => arr.length)));
+
+  const sorted = Object.entries(cidMap).sort((a,b) => {
+    const ca = Object.values(a[1]).reduce((s,arr) => s + arr.length, 0);
+    const cb = Object.values(b[1]).reduce((s,arr) => s + arr.length, 0);
+    return cb - ca;
+  });
+
+  let html = '';
+  sorted.forEach(([cidade, bairros]) => {
+    const total = Object.values(bairros).reduce((s,arr) => s + arr.length, 0);
+    const vencidos = Object.values(bairros).flat().filter(o => o.vencido).length;
+    const bairrosSorted = Object.entries(bairros).sort((a,b) => b[1].length - a[1].length);
+
+    // Color based on urgency
+    const barColor = vencidos > 0 ? 'var(--accent-red)' : 'var(--accent-cyan)';
+
+    html += `<div class="city-card">
+      <div class="city-header" onclick="this.parentElement.querySelector('.city-body').classList.toggle('collapsed')">
+        <div class="city-name">🏙 ${cidade} ${vencidos ? `<span class="badge badge-vencido" style="font-size:10px">${vencidos} vencida${vencidos>1?'s':''}</span>` : ''}</div>
+        <span class="city-count">${total} OS</span>
+      </div>
+      <div class="city-body">`;
+
+    bairrosSorted.forEach(([bairro, oss]) => {
+      const pct = (oss.length / maxBairro) * 100;
+      const hasVenc = oss.some(o => o.vencido);
+      const fillColor = hasVenc ? 'var(--accent-red)' : 'var(--accent-cyan)';
+      html += `<div class="bairro-item" onclick="showBairroDetail('${cidade}','${bairro}')">
+        <div class="bairro-name">${bairro} ${hasVenc ? '🔴' : ''}</div>
+        <div class="bairro-meta">
+          <div class="bairro-bar-bg"><div class="bairro-bar-fill" style="width:${pct}%;background:${fillColor}"></div></div>
+          <div class="bairro-count">${oss.length}</div>
         </div>
-        <div class="checkbox-section">
-            <div class="checkbox-section-title">Tipo de Serviço</div>
-            <div class="checkbox-grid" id="team-servicos"><span class="no-services-msg">Configure tipos de serviço em ⚙️ Config.</span></div>
+      </div>`;
+    });
+    html += '</div></div>';
+  });
+  document.getElementById('geoGrid').innerHTML = html;
+}
+
+// ═══════════════════════ MODALS ═══════════════════════
+function showOSDetail(id) {
+  const os = allOS[id];
+  document.getElementById('modalTitle').textContent = `OS ${os.os}`;
+  document.getElementById('modalBody').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div>
+        <div style="color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Matrícula</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600">${os.matricula}</div>
+      </div>
+      <div>
+        <div style="color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Tipo de Serviço</div>
+        <div style="font-weight:600">${os.tipoServico || '—'}</div>
+      </div>
+      <div>
+        <div style="color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Cidade</div>
+        <div style="font-weight:600">${os.cidade}</div>
+      </div>
+      <div>
+        <div style="color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Bairro</div>
+        <div style="font-weight:600">${os.bairro}</div>
+      </div>
+      <div>
+        <div style="color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Data Geração</div>
+        <div style="font-family:'JetBrains Mono',monospace">${os.dataGeracao ? os.dataGeracao.toLocaleDateString('pt-BR') : '—'}</div>
+      </div>
+      <div>
+        <div style="color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Vencimento</div>
+        <div>${os.dataVencimento ? os.dataVencimento.toLocaleDateString('pt-BR') : '—'} ${getPrazoIndicator(os)}</div>
+      </div>
+      <div>
+        <div style="color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Tipo de Solo</div>
+        <div><span class="badge-solo ${os.soloClass}">● ${os.solo || '—'}</span></div>
+      </div>
+      <div>
+        <div style="color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Categoria</div>
+        <div>${getCatBadge(os)}</div>
+      </div>
+      <div style="grid-column:1/-1">
+        <div style="color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Observação</div>
+        <div>${os.obs || '—'}</div>
+      </div>
+      ${os.restricao ? `<div style="grid-column:1/-1">
+        <div style="color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Restrição</div>
+        <div><span class="badge badge-restricao">${os.restricao}</span></div>
+      </div>` : ''}
+      ${os.lat && os.lng ? `<div style="grid-column:1/-1">
+        <div style="color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Coordenadas</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px">${os.lat}, ${os.lng}
+          <a href="https://www.google.com/maps?q=${os.lat},${os.lng}" target="_blank" style="color:var(--accent-cyan);text-decoration:none;margin-left:8px">🗺 Abrir no Maps</a>
         </div>
-        <div class="modal-footer">
-            <button class="btn-delete" onclick="deleteTeam()">Excluir</button>
-            <div style="display:flex; gap:8px; margin-left:auto;">
-                <button class="btn-cancel" onclick="closeModal('modal-team')">Cancelar</button>
-                <button class="btn-save" onclick="saveTeam()">Salvar</button>
-            </div>
-        </div>
-    </div></div>
+      </div>` : ''}
+    </div>
+    <div style="margin-top:20px">
+      <div style="color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">OS Próximas (mesmo bairro)</div>
+      ${getNearbyOS(os)}
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('active');
+}
 
-    <!-- Modal Configurações -->
-    <div id="modal-settings" class="modal-overlay"><div class="modal" style="width:560px;">
-        <h2>⚙️ Configurações do Sistema</h2>
-        <div class="checkbox-section">
-            <div class="checkbox-section-title">Tipos de Serviço</div>
-            <p style="font-size:11px;color:var(--text-muted);margin-bottom:10px;">Crie os tipos de serviço (ex: LIGAÇÃO, CORTE). O nome deve ser idêntico ao da coluna "Tipo Serviço" no Excel.</p>
-            <div class="svc-type-list" id="svc-type-list"></div>
-            <div class="add-svc-row">
-                <input type="text" id="new-svc-type-input" placeholder="Nome do tipo de serviço..." onkeydown="if(event.key==='Enter')addServiceType()">
-                <button onclick="addServiceType()">+ Adicionar</button>
-            </div>
-        </div>
-        <hr class="section-divider">
-        <div class="checkbox-section">
-            <div class="checkbox-section-title">Integração GitHub</div>
-            <p style="font-size:11px;color:var(--text-muted);margin-bottom:10px;">Configure para salvar/puxar dados (bairros + equipes + tipos de serviço) via GitHub.</p>
-            <div class="form-group"><label>Access Token</label><input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxx"></div>
-            <div class="form-group"><label>Repositório (owner/repo)</label><input type="text" id="gh-repo" placeholder="meu-usuario/meu-repo"></div>
-            <div class="form-group"><label>Caminho do arquivo JSON</label><input type="text" id="gh-path" placeholder="data/config_os.json" value="data/config_os.json"></div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn-cancel" onclick="closeModal('modal-settings')">Fechar</button>
-            <button class="btn-save" onclick="saveSettings()">Salvar Configurações</button>
-        </div>
-    </div></div>
+function getNearbyOS(os) {
+  const nearby = allOS.filter(o => o.id !== os.id && o.bairro === os.bairro && o.cidade === os.cidade);
+  if (!nearby.length) return '<div style="color:var(--text-muted);font-size:13px">Nenhuma OS no mesmo bairro</div>';
+  return nearby.slice(0, 5).map(o => `
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg-elevated);border-radius:var(--radius-sm);margin-bottom:6px;cursor:pointer" onclick="showOSDetail(${o.id})">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600">${o.os}</span>
+      ${getCatBadge(o)}
+      <span class="badge-solo ${o.soloClass}" style="font-size:10px">● ${o.solo}</span>
+      ${getPrazoIndicator(o)}
+    </div>
+  `).join('');
+}
 
-    <!-- Modal IA -->
-    <div id="modal-ai" class="modal-overlay"><div class="modal" style="width: 620px;">
-        <h2 style="color: var(--success);">🤖 Relatório Analítico</h2>
-        <div id="ai-content" style="font-size: 13px; line-height: 1.7; color: var(--text);">Analisando dados...</div>
-        <div class="modal-footer"><button class="btn-cancel" onclick="closeModal('modal-ai')">Fechar</button></div>
-    </div></div>
+function showBairroDetail(cidade, bairro) {
+  const oss = allOS.filter(o => o.cidade === cidade && o.bairro === bairro);
+  document.getElementById('modalTitle').textContent = `${bairro} — ${cidade}`;
+  const soloCount = {};
+  oss.forEach(o => { soloCount[o.solo] = (soloCount[o.solo] || 0) + 1; });
+  const vencidos = oss.filter(o => o.vencido).length;
+  document.getElementById('modalBody').innerHTML = `
+    <div class="summary-bar">
+      <div class="summary-item"><strong>${oss.length}</strong> OS total</div>
+      ${vencidos ? `<div class="summary-item" style="color:var(--accent-red)"><strong>${vencidos}</strong> vencida${vencidos>1?'s':''}</div>` : ''}
+      ${Object.entries(soloCount).map(([s,c]) => `<div class="summary-item"><span class="badge-solo ${s.includes('ASFALTO')?'asfalto':s.includes('BLOCO')?'bloco':'terra'}">● ${s}</span> <strong>${c}</strong></div>`).join('')}
+    </div>
+    <div class="table-scroll" style="max-height:400px">
+      <table class="os-table"><thead><tr>
+        <th>OS</th><th>Categoria</th><th>Solo</th><th>Prazo</th><th>Obs</th>
+      </tr></thead><tbody>
+      ${oss.sort((a,b) => (a.diasVencimento||99) - (b.diasVencimento||99)).map(o => `
+        <tr onclick="closeModal();setTimeout(()=>showOSDetail(${o.id}),200)" style="cursor:pointer">
+          <td style="font-family:'JetBrains Mono',monospace;font-size:12px"><strong>${o.os}</strong></td>
+          <td>${getCatBadge(o)}</td>
+          <td><span class="badge-solo ${o.soloClass}">● ${o.solo}</span></td>
+          <td>${getPrazoIndicator(o)}</td>
+          <td class="wrap">${o.obs || '—'}</td>
+        </tr>
+      `).join('')}
+      </tbody></table>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('active');
+}
 
-    <!-- Modal Gerar Rotas -->
-    <div id="modal-generate" class="modal-overlay"><div class="modal" style="width: 560px;">
-        <h2 style="color: var(--warning);">🚀 Gerar Rotas Automaticamente</h2>
-        <div class="gen-info">
-            ℹ️ Distribui OS entre equipes ativas respeitando: proximidade (máx 10km entre OS consecutivas), prazo, opções (pegar cedo, retro), solo, <strong>tipo de serviço</strong>, e rede não localizada.<br>
-            📍 Bairros no mapa = <strong>salva-vidas</strong>: se a localização da OS divergir >10km do bairro, o sistema corrige.<br>
-            ⚠️ OS de Apoio não são programadas automaticamente.
-        </div>
-        <div class="gen-config-row"><label>Máx. de OS por equipe:</label><input type="number" id="gen-max-os" value="12" min="1" max="50"></div>
-        <div class="checkbox-section"><div class="checkbox-section-title">Cidades para programar</div><div class="checkbox-grid" id="gen-cities"></div></div>
-        <div class="modal-footer">
-            <button class="btn-cancel" onclick="closeModal('modal-generate')">Cancelar</button>
-            <button class="btn-save" onclick="executeAutoGenerate()" style="background:var(--warning);border-color:var(--warning)">⚡ Gerar Rotas</button>
-        </div>
-    </div></div>
+function closeModal() { document.getElementById('modalOverlay').classList.remove('active'); }
 
-    <!-- Modal Relatório -->
-    <div id="modal-report" class="modal-overlay"><div class="modal modal-wide">
-        <h2>📊 Relatório de Rotas Geradas</h2>
-        <div id="report-content"></div>
-        <div class="modal-footer">
-            <button class="btn-delete" onclick="undoAutoGenerate()">↩️ Desfazer Geração</button>
-            <button class="btn-cancel" onclick="closeModal('modal-report')">Fechar</button>
-        </div>
-    </div></div>
+// ═══════════════════════ AI ANALYSIS ═══════════════════════
+async function runAI() {
+  const btn = document.getElementById('aiBtn');
+  const body = document.getElementById('aiBody');
+  btn.disabled = true;
+  body.innerHTML = '<div class="ai-loading"><div class="spinner"></div>Analisando ordens de serviço com IA avançada...</div>';
 
-    <script>
-    // ================= STATE =================
-    let teams = [{id:1,name:"CSCT-01",active:true,programmedOS:[],opcoes:[],solo:[],servicos:[]}];
-    let osData = [];
-    let neighborhoods = [];
-    let serviceTypes = [];
-    let mapMarkers = [];
-    let neighborhoodLayer;
-    let routingControl = null;
-    let routingControls = [];
-    let isMapConfigMode = false;
-    let activeTeamOverlayId = null;
-    let preGenerateSnapshot = null;
-    let currentSortField = null;
-    let currentSortAsc = true;
-    const VALID_CITIES = ['IGUABA GRANDE','ARRAIAL DO CABO','SAO PEDRO DA ALDEIA','CABO FRIO','BUZIOS','TAMOIOS'];
+  // Build comprehensive data summary for the AI
+  const cats = getCategories();
+  const cidMap = {};
+  allOS.forEach(os => {
+    if (!cidMap[os.cidade]) cidMap[os.cidade] = { total: 0, vencidas: 0, bairros: {} };
+    cidMap[os.cidade].total++;
+    if (os.vencido) cidMap[os.cidade].vencidas++;
+    if (!cidMap[os.cidade].bairros[os.bairro]) cidMap[os.cidade].bairros[os.bairro] = 0;
+    cidMap[os.cidade].bairros[os.bairro]++;
+  });
 
-    // ================= MAP INIT =================
-    const lagosCenter = [-22.87, -42.03];
-    const lagosBounds = L.latLngBounds(L.latLng(-23.10, -42.50), L.latLng(-22.48, -41.65));
-    const map = L.map('map', {center:lagosCenter,zoom:12,maxBounds:lagosBounds.pad(0.1),maxBoundsViscosity:0.9,minZoom:9,maxZoom:18});
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'&copy; OpenStreetMap contributors',maxZoom:19}).addTo(map);
-    neighborhoodLayer = L.layerGroup().addTo(map);
-    const TEAM_COLORS = ['#4f8cff','#ff6b6b','#ffd93d','#6bcb77','#a29bfe','#fd79a8','#fdcb6e','#00cec9','#e17055','#81ecec'];
-    function getTeamColor(i){return TEAM_COLORS[i%TEAM_COLORS.length]}
+  const soloCount = {};
+  allOS.forEach(o => { soloCount[o.solo] = (soloCount[o.solo] || 0) + 1; });
 
-    // ================= PRAZO =================
-    function getDaysElapsed(d){if(!d)return null;const dt=new Date(d);if(isNaN(dt.getTime()))return null;const n=new Date();n.setHours(0,0,0,0);dt.setHours(0,0,0,0);return Math.floor((n-dt)/(864e5))}
-    function getPrazoBadge(d){const days=getDaysElapsed(d);if(days===null)return'<span class="prazo-none">—</span>';let c,t;if(days>30){c='prazo-critical';t=`⚠ ${days} dias`}else if(days>15){c='prazo-warning';t=`${days} dias`}else if(days>7){c='prazo-attention';t=`${days} dias`}else{c='prazo-ok';t=`${days} dia${days!==1?'s':''}`}return`<span class="prazo-badge ${c}">${t}</span>`}
-    function getPrazoPriority(os){const d=getDaysElapsed(os.dataGeracao);if(d===null)return 0;if(d>30)return 4;if(d>15)return 3;if(d>7)return 2;return 1}
+  // Top priority OS
+  const urgentOS = allOS
+    .filter(o => o.categoria !== 'restricao')
+    .sort((a,b) => (a.diasVencimento||99) - (b.diasVencimento||99))
+    .slice(0, 20)
+    .map(o => ({
+      os: o.os, cidade: o.cidade, bairro: o.bairro, dias: o.diasVencimento,
+      cat: o.categoria, solo: o.solo, obs: o.obs, restricao: o.restricao,
+      lat: o.lat, lng: o.lng
+    }));
 
-    // ================= REDE NÃO LOCALIZADA =================
-    function parseRedeNaoLocalizada(obs){if(!obs)return null;const m=obs.match(/REDE\s*N[ÃA]O\s*LOCALIZADA\s*\[([^\]]+)\]/i);if(!m)return null;return m[1].split(',').map(s=>s.trim().toUpperCase())}
-    function isRedeNaoLocalizada(os){return parseRedeNaoLocalizada(os.obs1)!==null}
-    function isRetroOS(os){const o=(os.obs1||'').toUpperCase();return o.includes('RETRO')||o.includes('RETORNO')}
-    function canAssignRedeNaoLocalizada(os,teamName){const b=parseRedeNaoLocalizada(os.obs1);if(!b)return true;return!b.includes(teamName.toUpperCase())}
+  const prompt = `Você é um especialista em gestão de operações de campo (serviços de saneamento/água) na Região dos Lagos - RJ. Analise as seguintes ordens de serviço e forneça uma análise estratégica completa.
 
-    // ======= MANUAL ASSIGNMENT CHECKS =======
-    /**
-     * Check if a team can handle a soil type for a given OS.
-     * This mirrors the logic used in the auto‑generation routine.  It treats
-     * both the OS soil and team soil preferences as uppercase to perform a
-     * case‑insensitive match.  If the OS has no soil defined or the team
-     * has not selected any soils, it returns true.  Otherwise it ensures
-     * at least one of the team's soil capabilities appears within the OS's
-     * soil string.
-     */
-    function canTeamHandleSoloManual(team,os){
-        if(!os||!team) return true;
-        if(!os.solo||os.solo.trim()==='') return true;
-        if(!team.solo||team.solo.length===0) return true;
-        const s=os.solo.toUpperCase().trim();
-        return team.solo.some(ts=>s.includes(ts.toUpperCase().replace('_',' ')));
-    }
-    /**
-     * Check if a team can handle a service type for a given OS.  If the OS has
-     * no service defined, any team can perform it.  If the team has explicit
-     * service capabilities configured, the OS service must match one of them.
-     * If the OS service exists in the global list of configured service
-     * types but the team has no matching capability, the assignment is
-     * disallowed.  Otherwise the OS is allowed even if the team has no
-     * explicit service list.
-     */
-    function canTeamHandleServicoManual(team,os){
-        if(!os||!team) return true;
-        const osS=(os.servico||'').toUpperCase().trim();
-        if(!osS) return true;
-        // if team has specific services selected, OS service must match one
-        if(team.servicos && team.servicos.length>0){
-            return team.servicos.some(s=>s.toUpperCase()===osS);
-        }
-        // if serviceTypes contains this service but team didn't select it, disallow
-        if(serviceTypes && serviceTypes.some(st=>st.toUpperCase()===osS)){
-            return false;
-        }
-        return true;
-    }
-    /**
-     * Composite check combining solo and service checks, plus the same
-     * retro/redeNãoLocalizada restrictions used elsewhere.  This function
-     * should be used when manually dropping an OS onto a team to ensure
-     * consistency with the auto‑generation logic.
-     */
-    function canTeamHandleOSManual(team,os){
-        if(!canTeamHandleSoloManual(team,os)) return false;
-        if(!canTeamHandleServicoManual(team,os)) return false;
-        if(isRetroOS(os) && !(team.opcoes && team.opcoes.includes('retro'))) return false;
-        if(isRedeNaoLocalizada(os) && !canAssignRedeNaoLocalizada(os,team.name)) return false;
-        return true;
-    }
+DATA DE HOJE: ${TODAY.toLocaleDateString('pt-BR')}
 
-    // ================= CHECKBOX =================
-    function toggleChk(label){setTimeout(()=>{const cb=label.querySelector('input[type="checkbox"]');cb.checked?label.classList.add('checked'):label.classList.remove('checked')},0)}
+RESUMO GERAL:
+- Total de OS: ${allOS.length}
+- Vencidas: ${cats.vencido.length}
+- Pegar Cedo: ${cats['pegar-cedo'].length}
+- Retro: ${cats.retro.length}
+- Rede Não Localizada: ${cats.rede.length}
+- Com Restrição: ${cats.restricao.length}
+- Sem Marcação: ${cats.normal.length}
 
-    // ================= SERVICE TYPES (CONFIG) =================
-    function renderServiceTypeList(){const c=document.getElementById('svc-type-list');if(!c)return;c.innerHTML='';serviceTypes.forEach((s,i)=>{const d=document.createElement('div');d.className='svc-type-chip';d.innerHTML=`<span>${s}</span><button class="chip-remove" onclick="removeServiceType(${i})">✕</button>`;c.appendChild(d)})}
-    function addServiceType(){const inp=document.getElementById('new-svc-type-input');const v=inp.value.trim().toUpperCase();if(!v)return;if(serviceTypes.includes(v))return alert('Tipo já existe.');serviceTypes.push(v);inp.value='';renderServiceTypeList()}
-    function removeServiceType(i){serviceTypes.splice(i,1);renderServiceTypeList()}
-    function updateTeamServiceCheckboxes(){const c=document.getElementById('team-servicos');if(serviceTypes.length===0){c.innerHTML='<span class="no-services-msg">Configure tipos de serviço em ⚙️ Config.</span>';return}c.innerHTML='';serviceTypes.forEach(svc=>{const l=document.createElement('label');l.className='chk-item';l.onclick=function(){toggleChk(this)};l.innerHTML=`<input type="checkbox" value="${svc}"> ${svc}`;c.appendChild(l)})}
+DISTRIBUIÇÃO POR SOLO:
+${Object.entries(soloCount).map(([s,c]) => `- ${s}: ${c} OS`).join('\n')}
 
-    // ================= SETTINGS =================
-    function openSettingsModal(){document.getElementById('gh-token').value=localStorage.getItem('gh_token')||'';document.getElementById('gh-repo').value=localStorage.getItem('gh_repo')||'';document.getElementById('gh-path').value=localStorage.getItem('gh_path')||'data/config_os.json';renderServiceTypeList();document.getElementById('modal-settings').style.display='flex'}
-    function saveSettings(){localStorage.setItem('gh_token',document.getElementById('gh-token').value.trim());localStorage.setItem('gh_repo',document.getElementById('gh-repo').value.trim());localStorage.setItem('gh_path',document.getElementById('gh-path').value.trim());closeModal('modal-settings')}
+DISTRIBUIÇÃO POR CIDADE:
+${Object.entries(cidMap).map(([c,d]) => `- ${c}: ${d.total} OS (${d.vencidas} vencidas) | Bairros: ${Object.entries(d.bairros).sort((a,b)=>b[1]-a[1]).map(([b,n])=>`${b}(${n})`).join(', ')}`).join('\n')}
 
-    // ================= GITHUB =================
-    function getGH(){return{token:localStorage.getItem('gh_token')||'',repo:localStorage.getItem('gh_repo')||'',path:localStorage.getItem('gh_path')||'data/config_os.json'}}
-    function buildConfigJSON(){return{neighborhoods,teams:teams.map(t=>({id:t.id,name:t.name,active:t.active,opcoes:t.opcoes||[],solo:t.solo||[],servicos:t.servicos||[]})),serviceTypes}}
+TOP 20 OS MAIS URGENTES (excluindo restrição):
+${JSON.stringify(urgentOS, null, 1)}
 
-    async function githubSave(){
-        const gh=getGH();if(!gh.token||!gh.repo||!gh.path){alert('Configure o GitHub em ⚙️ Config.');openSettingsModal();return}
-        const content=btoa(unescape(encodeURIComponent(JSON.stringify(buildConfigJSON(),null,2))));
-        const apiUrl=`https://api.github.com/repos/${gh.repo}/contents/${gh.path}`;
-        try{
-            let sha=null;
-            try{const r=await fetch(apiUrl,{headers:{'Authorization':`token ${gh.token}`,'Accept':'application/vnd.github.v3+json'}});if(r.ok){sha=(await r.json()).sha}}catch(e){}
-            const body={message:`Atualização config OS — ${new Date().toLocaleString('pt-BR')}`,content,branch:'main'};
-            if(sha)body.sha=sha;
-            const r=await fetch(apiUrl,{method:'PUT',headers:{'Authorization':`token ${gh.token}`,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify(body)});
-            if(r.ok)alert('✅ Dados salvos no GitHub!');
-            else{const e=await r.json();alert('❌ Erro: '+(e.message||r.statusText))}
-        }catch(e){alert('❌ Erro: '+e.message)}
-    }
+OS COM RESTRIÇÃO (${cats.restricao.length}):
+${cats.restricao.map(o => `- ${o.os} | ${o.cidade}/${o.bairro} | ${o.restricao} | Solo: ${o.solo}`).join('\n')}
 
-    async function githubPull(){
-        const gh=getGH();if(!gh.token||!gh.repo||!gh.path){alert('Configure o GitHub em ⚙️ Config.');openSettingsModal();return}
-        const apiUrl=`https://api.github.com/repos/${gh.repo}/contents/${gh.path}`;
-        try{
-            const r=await fetch(apiUrl,{headers:{'Authorization':`token ${gh.token}`,'Accept':'application/vnd.github.v3+json'}});
-            if(!r.ok){alert(r.status===404?'⚠️ Arquivo não encontrado. Salve primeiro.':'❌ Erro: '+(await r.json()).message);return}
-            const f=await r.json();const d=decodeURIComponent(escape(atob(f.content.replace(/\n/g,''))));const cfg=JSON.parse(d);
-            if(Array.isArray(cfg.neighborhoods)){neighborhoods=cfg.neighborhoods;renderNeighborhoods()}
-            if(Array.isArray(cfg.teams)){teams=cfg.teams.map(t=>({...t,programmedOS:[]}));renderTeams()}
-            if(Array.isArray(cfg.serviceTypes)){serviceTypes=cfg.serviceTypes}
-            recalculateOSLocations();alert('✅ Dados puxados do GitHub!')
-        }catch(e){alert('❌ Erro: '+e.message)}
-    }
+REDE NÃO LOCALIZADA (${cats.rede.length}):
+${cats.rede.map(o => `- ${o.os} | ${o.cidade}/${o.bairro} | ${o.obs}`).join('\n')}
 
-    async function autoLoadFromGitHub(){
-        const gh=getGH();if(!gh.token||!gh.repo||!gh.path)return;
-        try{
-            const r=await fetch(`https://api.github.com/repos/${gh.repo}/contents/${gh.path}`,{headers:{'Authorization':`token ${gh.token}`,'Accept':'application/vnd.github.v3+json'}});
-            if(!r.ok)return;const f=await r.json();const d=decodeURIComponent(escape(atob(f.content.replace(/\n/g,''))));const cfg=JSON.parse(d);
-            if(Array.isArray(cfg.neighborhoods)){neighborhoods=cfg.neighborhoods;renderNeighborhoods()}
-            if(Array.isArray(cfg.teams)){teams=cfg.teams.map(t=>({...t,programmedOS:[]}));renderTeams()}
-            if(Array.isArray(cfg.serviceTypes)){serviceTypes=cfg.serviceTypes}
-            console.log('✅ Config carregada do GitHub.')
-        }catch(e){console.log('Auto-load falhou:',e.message)}
-    }
+Forneça sua análise em HTML formatado (usando as classes CSS disponíveis: highlight-box, priority-item, priority-rank r1/r2/r3) cobrindo:
 
-    // ================= CLEAR ALL ROUTES =================
-    function clearAllTeamRoutes(){
-        if(osData.length===0&&teams.every(t=>t.programmedOS.length===0))return alert('Sem rotas para limpar.');
-        if(!confirm('Limpar a rota de TODAS as equipes?'))return;
-        teams.forEach(t=>{t.programmedOS=[]});osData.forEach(o=>{o.teamId=null});
-        if(activeTeamOverlayId)updateOverlayRouteMap();
-        renderTeams();applyFilters();
-    }
+1. **DIAGNÓSTICO GERAL**: Visão rápida da situação e gravidade
+2. **PRIORIDADE MÁXIMA**: Quais OS executar PRIMEIRO e por quê (considere prazo, proximidade geográfica para otimizar rota, e tipo de solo — TERRA e BLOCO/PARALELO exigem mais tempo e esforço que ASFALTO)
+3. **ESTRATÉGIA POR REGIÃO**: Para cada cidade, qual a melhor abordagem. Onde concentrar esforço? Quais bairros agrupar na mesma rota?
+4. **ANÁLISE DE SOLO**: Como o tipo de solo afeta o planejamento (TERRA com chuva = risco, ASFALTO = mais rápido, BLOCO/PARALELO = intermediário)
+5. **PEGAR CEDO vs RETRO**: Estratégia para gerenciar esses dois tipos. Pegar cedo deve ser priorizado no início do dia. Retro geralmente é uma segunda visita.
+6. **REDE NÃO LOCALIZADA**: Recomendação de como lidar com essas OS (exigem equipe específica)
+7. **RESTRIÇÃO**: Análise das OS com restrição e quando/como tentá-las
+8. **RECOMENDAÇÃO FINAL**: Resumo do plano de ação ideal para o dia
 
-    // ================= MAP CONFIG =================
-    function toggleMapConfig(){
-        isMapConfigMode=!isMapConfigMode;const btn=document.getElementById('btn-map-config');const ind=document.getElementById('map-config-indicator');
-        if(isMapConfigMode){btn.style.background='var(--danger)';btn.style.borderColor='var(--danger)';btn.style.color='white';btn.innerHTML='🔴 Parar Configuração';document.getElementById('map').style.cursor='crosshair';ind.style.display='block'}
-        else{btn.style.background='';btn.style.borderColor='';btn.style.color='';btn.innerHTML='🗺️ Configurar Bairros';document.getElementById('map').style.cursor='';ind.style.display='none'}
-    }
-    map.on('click',function(e){if(!isMapConfigMode)return;const c=prompt("Cidade (ex: CABO FRIO):");if(!c)return;const b=prompt("Bairro:");if(!b)return;neighborhoods.push({cidade:c.trim().toUpperCase(),bairro:b.trim().toUpperCase(),lat:e.latlng.lat,lng:e.latlng.lng});renderNeighborhoods();recalculateOSLocations()});
-    function renderNeighborhoods(){
-        // Clear existing neighborhood markers
-        neighborhoodLayer.clearLayers();
-        // Render each neighborhood as a marker with optional edit/delete when in config mode
-        neighborhoods.forEach((n) => {
-            const marker = L.circleMarker([n.lat,n.lng],{
-                radius:10,
-                fillColor:'#e74c3c',
-                color:'#ffffff',
-                weight:2,
-                opacity:1,
-                fillOpacity:0.85
-            });
-            marker.bindTooltip(n.bairro,{permanent:true,direction:'right',className:'bairro-label'});
-            // When in map configuration mode, allow editing or deleting neighborhoods via clicking the marker
-            marker.on('click',function(){
-                if(!isMapConfigMode) return;
-                // Ask the user whether to edit or delete the neighborhood
-                const resp = prompt('Editar ou Deletar? (E/D)', 'E');
-                if(!resp) return;
-                const action = resp.trim().toUpperCase();
-                // Delete the neighborhood
-                if(action === 'D'){
-                    if(confirm('Confirma deletar este bairro?')){
-                        const idx = neighborhoods.indexOf(n);
-                        if(idx >= 0){
-                            neighborhoods.splice(idx,1);
-                            renderNeighborhoods();
-                            recalculateOSLocations();
-                        }
-                    }
-                } else if(action === 'E'){
-                    // Edit the neighborhood's city and name
-                    const newCity = prompt('Cidade:', n.cidade || '');
-                    if(newCity === null) return;
-                    const newBairro = prompt('Bairro:', n.bairro || '');
-                    if(newBairro === null) return;
-                    n.cidade = newCity.trim().toUpperCase();
-                    n.bairro = newBairro.trim().toUpperCase();
-                    renderNeighborhoods();
-                    recalculateOSLocations();
-                }
-            });
-            marker.addTo(neighborhoodLayer);
-        });
-    }
+Responda APENAS em HTML, sem markdown, sem backticks. Use <h3>, <p>, <ul>, <li>, <strong>, <div class="highlight-box">, e <div class="priority-item"><div class="priority-rank r1|r2|r3">N</div><div>texto</div></div>.`;
 
-    // ================= HAVERSINE =================
-    function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2){const R=6371;const dLat=(lat2-lat1)*(Math.PI/180);const dLon=(lon2-lon1)*(Math.PI/180);const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)))}
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await response.json();
+    const text = data.content?.map(c => c.text || '').join('') || 'Erro ao processar a análise.';
+    body.innerHTML = `<div class="ai-result">${text}</div>`;
+  } catch (err) {
+    body.innerHTML = `<div class="ai-placeholder" style="color:var(--accent-red)">❌ Erro ao conectar com a IA: ${err.message}<br><br>
+    <small style="color:var(--text-muted)">A análise inteligente usa a API Claude para processar os dados.</small></div>`;
+  }
+  btn.disabled = false;
+}
 
-    // ================= LOCATION CORRECTION (BAIRROS = SALVA-VIDAS) =================
-    function recalculateOSLocations(){
-        osData.forEach(os=>{
-            os.lat=os.originalLat;os.lng=os.originalLng;os.distWarning=false;
-            const nb=neighborhoods.find(n=>{
-                const ob=os.bairro.toUpperCase().trim();const nb2=n.bairro.toUpperCase().trim();
-                const cityMatch=n.cidade===os.cidade.toUpperCase()||os.cidade.toUpperCase().includes(n.cidade)||n.cidade.includes(os.cidade.toUpperCase());
-                return(ob.includes(nb2)||nb2.includes(ob))&&cityMatch;
-            });
-            if(nb){const dist=getDistanceFromLatLonInKm(os.originalLat,os.originalLng,nb.lat,nb.lng);if(dist>10){os.lat=nb.lat;os.lng=nb.lng;os.distWarning=true}}
-        });
-        applyFilters();
-    }
-
-    // ================= EXCEL =================
-    function handleExcelUpload(event){
-        const file=event.target.files[0];if(!file)return;
-        const reader=new FileReader();
-        reader.onload=function(e){
-            const data=new Uint8Array(e.target.result);const wb=XLSX.read(data,{type:'array'});const json=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1});
-            osData=[];
-            for(let i=1;i<json.length;i++){
-                const row=json[i];if(!row||row.length===0)continue;
-                const lat=parseFloat(row[8]);const lng=parseFloat(row[9]);
-                if(!isNaN(lat)&&!isNaN(lng)){
-                    const restricaoStr=(row[5]||'').toString().trim();
-                    let dataGer=row[6]||'';if(typeof dataGer==='number'){const dt=new Date((dataGer-25569)*86400*1000);dataGer=dt.toISOString().split('T')[0]}
-                // Always read service and soil types from Excel as uppercase.
-                const servicoStr=String(row[10]||'').trim().toUpperCase();
-                    osData.push({
-                        id:String(row[1]||Date.now()+i),
-                        matricula:String(row[0]||''),
-                        os:String(row[1]||''),
-                        cidade:String(row[2]||'').trim(),
-                        bairro:String(row[3]||'').trim(),
-                        obs1:String(row[4]||''),
-                        restricao:restricaoStr,
-                        dataGeracao:dataGer,
-                        servico:servicoStr,
-                        // read solo as uppercase since Excel will provide caps
-                        solo:String(row[11]||'').trim().toUpperCase(),
-                        originalLat:lat,
-                        originalLng:lng,
-                        lat,
-                        lng,
-                        teamId:null,
-                        distWarning:false,
-                        isRestricted:restricaoStr.length>0
-                    });
-                }
-            }
-            recalculateOSLocations();
-        };
-        reader.readAsArrayBuffer(file);
-    }
-
-    // ================= FILTERS =================
-    function applyFilters(){
-        const fC=document.getElementById('flt-cidade').value.toUpperCase();
-        const fB=document.getElementById('flt-bairro').value.toLowerCase();
-        const fO=document.getElementById('flt-os').value.toLowerCase();
-        const fM=document.getElementById('flt-mat').value.toLowerCase();
-        const fOb=document.getElementById('flt-obs').value.toLowerCase();
-        const fDI=document.getElementById('flt-data-ini').value;
-        const fDF=document.getElementById('flt-data-fim').value;
-        // Team filter: may not exist when the page first loads
-        let fE='';
-        const eqSel=document.getElementById('flt-equipe');
-        if(eqSel) fE=eqSel.value;
-        const filtered=osData.filter(os=>{
-            // city filter
-            if(fC && !os.cidade.toUpperCase().includes(fC)) return false;
-            // bairro filter
-            if(fB && !os.bairro.toLowerCase().includes(fB)) return false;
-            // OS number filter
-            if(fO && !os.os.toLowerCase().includes(fO)) return false;
-            // matricula filter
-            if(fM && !os.matricula.toLowerCase().includes(fM)) return false;
-            // obs filter
-            if(fOb){
-                if(fOb==='none'){
-                    // show only those with no observation
-                    if(os.obs1 && os.obs1.trim()!=='') return false;
-                } else {
-                    if(!os.obs1.toLowerCase().includes(fOb)) return false;
-                }
-            }
-            // team filter: value 'none' means unassigned; empty string means all
-            if(fE){
-                if(fE==='none'){
-                    if(os.teamId) return false;
-                } else {
-                    if(String(os.teamId) !== fE) return false;
-                }
-            }
-            // date filters
-            if(fDI && os.dataGeracao){ if(new Date(os.dataGeracao) < new Date(fDI)) return false; }
-            if(fDF && os.dataGeracao){ if(new Date(os.dataGeracao) > new Date(fDF)) return false; }
-            return true;
-        });
-        if(currentSortField){filtered.sort((a,b)=>{let vA,vB;switch(currentSortField){case'matricula':vA=a.matricula;vB=b.matricula;break;case'os':vA=a.os;vB=b.os;break;case'cidade':vA=a.cidade;vB=b.cidade;break;case'bairro':vA=a.bairro;vB=b.bairro;break;case'obs1':vA=a.obs1||'';vB=b.obs1||'';break;case'restricao':vA=a.restricao||'';vB=b.restricao||'';break;case'prazo':vA=getDaysElapsed(a.dataGeracao)||-1;vB=getDaysElapsed(b.dataGeracao)||-1;break;case'servico':vA=a.servico||'';vB=b.servico||'';break;case'solo':vA=a.solo||'';vB=b.solo||'';break;case'equipe':const tA=teams.find(t=>t.id===a.teamId);const tB=teams.find(t=>t.id===b.teamId);vA=tA?tA.name:'';vB=tB?tB.name:'';break;default:vA='';vB=''}if(currentSortField==='prazo')return currentSortAsc?vA-vB:vB-vA;const sA=String(vA).toLowerCase();const sB=String(vB).toLowerCase();if(sA<sB)return currentSortAsc?-1:1;if(sA>sB)return currentSortAsc?1:-1;return 0})}
-        renderTable(filtered);if(!activeTeamOverlayId)renderMap(filtered);
-    }
-    function clearFilters(){
-        document.getElementById('flt-cidade').value='';
-        document.querySelectorAll('#filter-bar input').forEach(inp=>{inp.value='';});
-        // Reset team filter to show all
-        const eqSel=document.getElementById('flt-equipe');
-        if(eqSel) eqSel.value='';
-        currentSortField=null;
-        currentSortAsc=true;
-        applyFilters();
-    }
-    function sortTable(field){if(currentSortField===field){currentSortAsc=!currentSortAsc}else{currentSortField=field;currentSortAsc=true}document.querySelectorAll('thead th').forEach(th=>th.classList.remove('sorted-active'));const headers=['matricula','os','cidade','bairro','obs1','restricao','prazo','servico','solo','equipe'];const idx=headers.indexOf(field);if(idx>=0)document.querySelectorAll('thead th')[idx].classList.add('sorted-active');applyFilters()}
-
-    // ================= TABLE =================
-    function renderTable(data=osData){
-        const tbody=document.getElementById('os-table-body');tbody.innerHTML='';
-        data.forEach(row=>{
-            const at=teams.find(t=>t.id===row.teamId);const tb=at?`<span class="status-badge" style="background:rgba(108,92,231,0.15);color:#a29bfe">${at.name}</span>`:'<span style="color:var(--text-muted)">—</span>';
-            const tr=document.createElement('tr');if(row.isRestricted)tr.className='os-restricted';
-            if(!row.isRestricted){tr.setAttribute('draggable','true');tr.ondragstart=(ev)=>drag(ev,row.id)}
-            tr.innerHTML=`<td>${row.matricula}</td><td><strong>${row.os}</strong></td><td>${row.cidade}</td><td>${row.bairro}</td><td style="color:var(--warning)">${row.obs1}</td><td>${row.isRestricted?`<span class="badge-restricao">${row.restricao}</span>`:''}</td><td>${getPrazoBadge(row.dataGeracao)}</td><td>${row.servico?`<span class="badge-servico">${row.servico}</span>`:''}</td><td>${row.solo?`<span class="badge-solo">${row.solo}</span>`:''}</td><td>${tb}</td>`;
-            tbody.appendChild(tr);
-        });
-    }
-
-    // ================= MAP =================
-    function renderMap(dados,routeColor){
-        mapMarkers.forEach(m=>map.removeLayer(m));mapMarkers=[];clearAllRouting();
-        dados.forEach((row,idx)=>{
-            const days=getDaysElapsed(row.dataGeracao);let marker;
-            if(routeColor){const ni=L.divIcon({className:'',html:`<div class="route-number-marker" style="background:${routeColor}">${idx+1}</div>`,iconSize:[28,28],iconAnchor:[14,14],popupAnchor:[0,-14]});marker=L.marker([row.lat,row.lng],{icon:ni}).addTo(map)}
-            else{let mc='blue';if(days!==null){if(days>30)mc='red';else if(days>15)mc='orange';else if(days>7)mc='gold';else mc='green'}const icon=L.icon({iconUrl:`https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${mc}.png`,shadowUrl:'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',iconSize:[25,41],iconAnchor:[12,41],popupAnchor:[1,-34]});marker=L.marker([row.lat,row.lng],{icon}).addTo(map)}
-            const dt=days!==null?`<br>📅 ${days} dias`:'';const ot=row.obs1?`<br>📝 ${row.obs1}`:'';const wt=row.distWarning?'<br>⚠️ <b style="color:orange">Local corrigido pelo bairro</b>':'';
-            marker.bindPopup(`<b>OS: ${row.os}</b><br>${row.bairro}, ${row.cidade}${dt}${ot}${wt}${row.isRestricted?'<br><b style="color:red">RESTRITA</b>':''}`);
-            mapMarkers.push(marker);
-        });
-        if(dados.length>0&&!activeTeamOverlayId){const g=new L.featureGroup(mapMarkers);map.fitBounds(g.getBounds().pad(0.1))}
-    }
-    function clearAllRouting(){if(routingControl){map.removeControl(routingControl);routingControl=null}routingControls.forEach(rc=>{try{map.removeControl(rc)}catch(e){}});routingControls=[]}
-
-    // ================= ROUTE OVERLAY =================
-    function openRouteOverlay(teamId){activeTeamOverlayId=teamId;const t=teams.find(t=>t.id===teamId);document.getElementById('overlay-title').innerText=`Gerenciando: ${t.name}`;document.getElementById('route-overlay').style.display='flex';updateOverlayRouteMap()}
-    function closeRouteOverlay(){activeTeamOverlayId=null;document.getElementById('route-overlay').style.display='none';applyFilters()}
-    function drag(ev,osId){if(!activeTeamOverlayId){alert("Abra uma equipe na barra lateral antes de arrastar.");ev.preventDefault();return}ev.dataTransfer.setData("text/plain",osId)}
-    function allowDrop(ev){ev.preventDefault();document.getElementById('drop-zone').classList.add('drag-over')}
-    function leaveDrop(ev){document.getElementById('drop-zone').classList.remove('drag-over')}
-    function dropOS(ev){
-        ev.preventDefault();document.getElementById('drop-zone').classList.remove('drag-over');
-        const osId=ev.dataTransfer.getData("text/plain");
-        if(osId && activeTeamOverlayId){
-            const os=osData.find(o=>o.id===osId);
-            if(os && !os.isRestricted){
-                const team=teams.find(t=>t.id===activeTeamOverlayId);
-                // Enforce that early teams can only perform one OS per day
-                if(team.opcoes && team.opcoes.includes('pegar_cedo') && team.programmedOS.length >= 1){
-                    alert('Equipes com opção "Pegar Cedo" só podem ter 1 OS por dia.');
-                    return;
-                }
-                // Check if the team is allowed to handle this OS (service/solo/retro constraints)
-                if(!canTeamHandleOSManual(team, os)){
-                    alert('Esta equipe não pode realizar este tipo de serviço, solo ou observação.');
-                    return;
-                }
-                // Remove from previous team if assigned elsewhere
-                if(os.teamId && os.teamId !== team.id){
-                    const old=teams.find(t=>t.id===os.teamId);
-                    if(old) old.programmedOS = old.programmedOS.filter(id=>id !== osId);
-                }
-                // Add to team's route if not already present
-                if(!team.programmedOS.includes(osId)){
-                    team.programmedOS.push(osId);
-                    os.teamId = team.id;
-                    updateOverlayRouteMap();
-                    applyFilters();
-                }
-            }
-        }
-    }
-    function removeOSFromTeam(osId){const team=teams.find(t=>t.id===activeTeamOverlayId);team.programmedOS=team.programmedOS.filter(id=>id!==osId);const os=osData.find(o=>o.id===osId);if(os)os.teamId=null;updateOverlayRouteMap();applyFilters()}
-    function updateOverlayRouteMap(){
-        const team=teams.find(t=>t.id===activeTeamOverlayId);const list=document.getElementById('overlay-route-list');list.innerHTML='';
-        if(team.programmedOS.length===0){list.innerHTML='<div class="empty-drop-msg">Arraste as OS da tabela e solte aqui para programar.</div>'}
-        else{team.programmedOS.forEach((osId,index)=>{const os=osData.find(o=>o.id===osId);if(!os)return;list.innerHTML+=`<li class="route-item"><div class="route-item-info"><strong>${index+1}. OS: ${os.os}</strong><br><span style="color:var(--text-dim)">${os.bairro}, ${os.cidade}</span>${os.distWarning?'<br><span style="color:var(--warning);font-size:9px">⚠️ Local corrigido</span>':''}<div class="route-prazo">${getPrazoBadge(os.dataGeracao)}</div></div><div><button class="route-btn" onclick="moveOSInOverlay(${index},-1)" ${index===0?'disabled':''}>↑</button><button class="route-btn" onclick="moveOSInOverlay(${index},1)" ${index===team.programmedOS.length-1?'disabled':''}>↓</button><button class="route-btn btn-remove" onclick="removeOSFromTeam('${os.id}')">✕</button></div></li>`})}
-        renderTeams();const teamOSs=team.programmedOS.map(id=>osData.find(o=>o.id===id)).filter(o=>o);const ti=teams.findIndex(t=>t.id===team.id);const tc=getTeamColor(ti>=0?ti:0);renderMap(teamOSs,tc);
-        if(teamOSs.length>=2){const wp=teamOSs.map(os=>L.latLng(os.lat,os.lng));routingControl=L.Routing.control({waypoints:wp,routeWhileDragging:false,addWaypoints:false,show:false,createMarker:function(){return null},lineOptions:{styles:[{color:tc,weight:5,opacity:0.8}],addWaypoints:false},router:L.Routing.osrmv1({serviceUrl:'https://router.project-osrm.org/route/v1',profile:'driving'})}).addTo(map);routingControls.push(routingControl)}
-    }
-    function moveOSInOverlay(index,dir){const team=teams.find(t=>t.id===activeTeamOverlayId);const ni=index+dir;if(ni<0||ni>=team.programmedOS.length)return;const tmp=team.programmedOS[index];team.programmedOS[index]=team.programmedOS[ni];team.programmedOS[ni]=tmp;updateOverlayRouteMap()}
-    function reorderByProximity(){const team=teams.find(t=>t.id===activeTeamOverlayId);if(team.programmedOS.length<=1)return alert("Mínimo 2 OS.");let ordered=[team.programmedOS[0]];let remaining=team.programmedOS.slice(1);let curId=ordered[0];while(remaining.length>0){let cur=osData.find(o=>o.id===curId);let ni=0,md=Infinity;for(let i=0;i<remaining.length;i++){let c=osData.find(o=>o.id===remaining[i]);let d=getDistanceFromLatLonInKm(cur.lat,cur.lng,c.lat,c.lng);if(d<md){md=d;ni=i}}curId=remaining[ni];ordered.push(curId);remaining.splice(ni,1)}team.programmedOS=ordered;updateOverlayRouteMap()}
-
-    // ================= EQUIPES =================
-    function renderTeams(){
-        const list=document.getElementById('team-list');list.innerHTML='';
-        teams.forEach(t=>{
-            const row=document.createElement('div');row.className=`team-row ${t.active?'':'inactive'}`;
-            const stBtn=document.createElement('button');stBtn.className='team-settings-btn';stBtn.innerHTML='⚙';stBtn.onclick=(e)=>{e.stopPropagation();openTeamModal(t.id)};
-            const info=document.createElement('div');info.className='team-info';info.onclick=()=>openRouteOverlay(t.id);
-            const bc=t.programmedOS.length>0?'badge-os-count':'badge-empty';
-            const tags=[];if(t.opcoes&&t.opcoes.length)t.opcoes.forEach(o=>tags.push({label:o.replace('_',' '),cls:'tag-option'}));if(t.solo&&t.solo.length)t.solo.forEach(s=>tags.push({label:s.replace('_',' '),cls:'tag-solo'}));if(t.servicos&&t.servicos.length)t.servicos.forEach(s=>tags.push({label:s,cls:'tag-servico'}));
-            const th=tags.length>0?'<div class="team-tags">'+tags.map(tg=>`<span class="team-tag ${tg.cls}">${tg.label}</span>`).join('')+'</div>':'';
-            info.innerHTML=`<span class="team-name">${t.name} <span class="status-badge ${bc}">${t.programmedOS.length} OS</span></span>${th}`;
-            row.appendChild(stBtn);row.appendChild(info);list.appendChild(row);
-        });
-
-        // Update the team filter options whenever teams are rendered
-        const eqSel=document.getElementById('flt-equipe');
-        if(eqSel){
-            const prev=eqSel.value;
-            // Clear existing options and re‑add default choices
-            eqSel.innerHTML='';
-            const optAll=document.createElement('option');optAll.value='';optAll.textContent='Todas Equipes';eqSel.appendChild(optAll);
-            const optNone=document.createElement('option');optNone.value='none';optNone.textContent='Sem Equipe';eqSel.appendChild(optNone);
-            teams.forEach(t=>{
-                const o=document.createElement('option');o.value=String(t.id);o.textContent=t.name;eqSel.appendChild(o);
-            });
-            // Restore previously selected value if still valid
-            const exists=[...eqSel.options].some(o=>o.value===prev);
-            if(exists) eqSel.value=prev;
-            else eqSel.value='';
-        }
-    }
-    function openTeamModal(tId){
-        const modal=document.getElementById('modal-team');modal.style.display='flex';
-        modal.querySelectorAll('.chk-item input[type="checkbox"]').forEach(cb=>{cb.checked=false;cb.closest('.chk-item').classList.remove('checked')});
-        updateTeamServiceCheckboxes();
-        if(tId){const t=teams.find(t=>t.id===tId);document.getElementById('team-id').value=t.id;document.getElementById('team-name').value=t.name;
-            if(t.opcoes)t.opcoes.forEach(v=>{const cb=modal.querySelector(`#team-opcoes input[value="${v}"]`);if(cb){cb.checked=true;cb.closest('.chk-item').classList.add('checked')}});
-            if(t.solo)t.solo.forEach(v=>{const cb=modal.querySelector(`#team-solo input[value="${v}"]`);if(cb){cb.checked=true;cb.closest('.chk-item').classList.add('checked')}});
-            if(t.servicos)t.servicos.forEach(v=>{const cb=modal.querySelector(`#team-servicos input[value="${v}"]`);if(cb){cb.checked=true;cb.closest('.chk-item').classList.add('checked')}});
-        }else{document.getElementById('team-id').value="";document.getElementById('team-name').value=""}
-    }
-    function saveTeam(){const id=document.getElementById('team-id').value;const name=document.getElementById('team-name').value;if(!name)return;const opcoes=[...document.querySelectorAll('#team-opcoes input:checked')].map(cb=>cb.value);const solo=[...document.querySelectorAll('#team-solo input:checked')].map(cb=>cb.value);const servicos=[...document.querySelectorAll('#team-servicos input:checked')].map(cb=>cb.value);if(id){const t=teams.find(t=>t.id==id);t.name=name;t.opcoes=opcoes;t.solo=solo;t.servicos=servicos}else{teams.push({id:Date.now(),name,active:true,programmedOS:[],opcoes,solo,servicos})}renderTeams();closeModal('modal-team')}
-    function deleteTeam(){teams=teams.filter(t=>t.id!=document.getElementById('team-id').value);renderTeams();closeModal('modal-team')}
-    function closeModal(id){document.getElementById(id).style.display='none'}
-
-    // ================= AUTO GENERATE =================
-    function openGenerateModal(){
-        if(osData.length===0)return alert("Carregue uma planilha primeiro.");if(teams.filter(t=>t.active).length===0)return alert("Crie pelo menos uma equipe.");
-        const cities=[...new Set(osData.map(o=>o.cidade.toUpperCase()))].filter(c=>c).sort();const container=document.getElementById('gen-cities');container.innerHTML='';
-        cities.forEach(city=>{const l=document.createElement('label');l.className='chk-item checked';l.onclick=function(){toggleChk(this)};l.innerHTML=`<input type="checkbox" value="${city}" checked> ${city}`;container.appendChild(l)});
-        document.getElementById('modal-generate').style.display='flex';
-    }
-
-    function executeAutoGenerate(){
-        preGenerateSnapshot={teams:JSON.parse(JSON.stringify(teams.map(t=>({...t})))),osTeamIds:osData.map(o=>({id:o.id,teamId:o.teamId}))};
-        const maxOS=parseInt(document.getElementById('gen-max-os').value)||12;const selectedCities=[...document.querySelectorAll('#gen-cities input:checked')].map(cb=>cb.value);
-        const MAX_DIST=10;
-        teams.forEach(t=>{t.programmedOS=[]});osData.forEach(o=>{o.teamId=null});
-
-        function isApoioOS(os){return(os.obs1||'').toUpperCase().includes('APOIO')}
-        function isPegarCedoOS(os){const o=(os.obs1||'').toUpperCase();return o.includes('CEDO')||o.includes('PEGAR CEDO')}
-        function canTeamHandleSolo(team,os){if(!os.solo||os.solo.trim()==='')return true;if(!team.solo||team.solo.length===0)return true;const s=os.solo.toUpperCase().trim();return team.solo.some(ts=>s.includes(ts.toUpperCase().replace('_',' ')))}
-        function canTeamHandleServico(team,os){
-            const osS=(os.servico||'').toUpperCase().trim();if(!osS)return true;
-            if(team.servicos&&team.servicos.length>0)return team.servicos.some(s=>s.toUpperCase()===osS);
-            if(serviceTypes.some(st=>st.toUpperCase()===osS))return false;
-            return true;
-        }
-        function canTeamHandleOS(team,os){if(!canTeamHandleSolo(team,os))return false;if(!canTeamHandleServico(team,os))return false;if(isRetroOS(os)&&!(team.opcoes&&team.opcoes.includes('retro')))return false;if(isRedeNaoLocalizada(os)&&!canAssignRedeNaoLocalizada(os,team.name))return false;return true}
-
-        let fullPool=osData.filter(o=>!o.isRestricted&&selectedCities.includes(o.cidade.toUpperCase()));
-        const apoioOS=fullPool.filter(o=>isApoioOS(o));let pool=fullPool.filter(o=>!isApoioOS(o));
-        const activeTeams=teams.filter(t=>t.active);
-
-        const osByCity={};pool.forEach(o=>{const c=o.cidade.toUpperCase();if(!osByCity[c])osByCity[c]=[];osByCity[c].push(o)});
-        const cityList=Object.keys(osByCity).sort((a,b)=>osByCity[b].length-osByCity[a].length);
-        const teamCityMap={};const cityTeams={};const assignedTeamIds=new Set();
-
-        const retroTeams=activeTeams.filter(t=>t.opcoes&&t.opcoes.includes('retro'));
-        const retroByCity={};cityList.forEach(c=>{retroByCity[c]=osByCity[c].filter(o=>isRetroOS(o)).length});
-        retroTeams.forEach(team=>{let bc=null,bv=-1;cityList.forEach(c=>{if((retroByCity[c]||0)>bv){bv=retroByCity[c];bc=c}});if(bc){teamCityMap[team.id]=bc;if(!cityTeams[bc])cityTeams[bc]=[];cityTeams[bc].push(team.id);assignedTeamIds.add(team.id)}});
-
-        activeTeams.filter(t=>!assignedTeamIds.has(t.id)).forEach(team=>{const sorted=cityList.slice().sort((a,b)=>{const aT=(cityTeams[a]||[]).length;const bT=(cityTeams[b]||[]).length;return(osByCity[b].length/Math.max(1,bT))-(osByCity[a].length/Math.max(1,aT))});const bc=sorted[0];teamCityMap[team.id]=bc;if(!cityTeams[bc])cityTeams[bc]=[];cityTeams[bc].push(team.id);assignedTeamIds.add(team.id)});
-
-        activeTeams.forEach(team=>{
-            const city=teamCityMap[team.id];if(!city)return;
-            let cityPool=osByCity[city].filter(o=>!o.teamId);
-            const isRetro=team.opcoes&&team.opcoes.includes('retro');
-            const isCedo=team.opcoes&&team.opcoes.includes('pegar_cedo');
-            const isDesemp=team.opcoes&&team.opcoes.includes('desempenho');
-            // Teams with the "pegar_cedo" option can only handle one OS per day.
-            const teamMaxOS = isCedo ? 1 : maxOS;
-            const isPlain=(!team.opcoes||team.opcoes.length===0)&&(!team.solo||team.solo.length===0)&&(!team.servicos||team.servicos.length===0);
-            let route=[];
-            function withinDist(os){if(route.length===0)return true;const last=osData.find(o=>o.id===route[route.length-1]);if(!last)return true;return getDistanceFromLatLonInKm(last.lat,last.lng,os.lat,os.lng)<=MAX_DIST}
-
-            if(isCedo){let c=cityPool.find(o=>isPegarCedoOS(o)&&canTeamHandleOS(team,o));if(c){route.push(c.id);c.teamId=team.id;cityPool=cityPool.filter(o=>o.id!==c.id)}else{c=pool.find(o=>!o.teamId&&isPegarCedoOS(o)&&canTeamHandleOS(team,o));if(c){route.push(c.id);c.teamId=team.id}}}
-
-            if(isRetro){
-                cityPool.filter(o=>isRetroOS(o)&&canTeamHandleOS(team,o))
-                    .sort((a,b)=>(getDaysElapsed(b.dataGeracao)||0)-(getDaysElapsed(a.dataGeracao)||0))
-                    .forEach(os=>{if(route.length>=teamMaxOS)return;if(!withinDist(os))return;route.push(os.id);os.teamId=team.id});
-                cityPool=cityPool.filter(o=>!o.teamId);
-                cityPool.filter(o=>isRedeNaoLocalizada(o)&&canTeamHandleOS(team,o))
-                    .forEach(os=>{if(route.length>=teamMaxOS)return;if(!withinDist(os))return;route.push(os.id);os.teamId=team.id});
-                cityPool=cityPool.filter(o=>!o.teamId);
-            }
-
-            if(isDesemp && !isRetro){
-                cityPool.filter(o=>isRedeNaoLocalizada(o)&&canTeamHandleOS(team,o))
-                    .sort((a,b)=>(getDaysElapsed(b.dataGeracao)||0)-(getDaysElapsed(a.dataGeracao)||0))
-                    .forEach(os=>{if(route.length>=teamMaxOS)return;if(!withinDist(os))return;route.push(os.id);os.teamId=team.id});
-                cityPool=cityPool.filter(o=>!o.teamId);
-            }
-
-            if(route.length < teamMaxOS){
-                let remaining=cityPool.filter(o=>!o.teamId&&canTeamHandleOS(team,o));
-                if(!isRetro)remaining=remaining.filter(o=>!isRetroOS(o));if(!isCedo)remaining=remaining.filter(o=>!isPegarCedoOS(o));if(isPlain)remaining=remaining.filter(o=>!o.obs1||o.obs1.trim()==='');
-                remaining.sort((a,b)=>{const pA=getPrazoPriority(a),pB=getPrazoPriority(b);if(pA!==pB)return pB-pA;return(getDaysElapsed(b.dataGeracao)||0)-(getDaysElapsed(a.dataGeracao)||0)});
-                const urgent=remaining.filter(o=>getPrazoPriority(o)>=3);const normal=remaining.filter(o=>getPrazoPriority(o)<3);
-                urgent.forEach(os=>{if(route.length>=teamMaxOS)return;if(!withinDist(os))return;route.push(os.id);os.teamId=team.id});
-                let leftover=normal.filter(o=>!o.teamId);let stuck=0;
-                while(route.length<teamMaxOS && leftover.length>0 && stuck < leftover.length){
-                    const last=route.length>0?osData.find(o=>o.id===route[route.length-1]):null;if(!last)break;
-                    let bi=-1,bd=Infinity;for(let i=0;i<leftover.length;i++){const d=getDistanceFromLatLonInKm(last.lat,last.lng,leftover[i].lat,leftover[i].lng);if(d<=MAX_DIST){const sc=d-(getPrazoPriority(leftover[i])>=2?0.5:0);if(sc<bd){bd=sc;bi=i}}}
-                    if(bi===-1){let ci=0,cd=Infinity;for(let i=0;i<leftover.length;i++){const d=getDistanceFromLatLonInKm(last.lat,last.lng,leftover[i].lat,leftover[i].lng);if(d<cd){cd=d;ci=i}}if(cd>MAX_DIST*1.5)break;route.push(leftover[ci].id);leftover[ci].teamId=team.id;leftover.splice(ci,1);stuck=0}
-                    else{route.push(leftover[bi].id);leftover[bi].teamId=team.id;leftover.splice(bi,1);stuck=0}
-                }
-            }
-
-            if(route.length>1){const ff=isCedo?[route[0]]:[];const tr=isCedo?route.slice(1):route.slice();if(tr.length>1){let ord=[tr[0]],rem=tr.slice(1),cur=ord[0];while(rem.length>0){const co=osData.find(o=>o.id===cur);let ni=0,nd=Infinity;for(let i=0;i<rem.length;i++){const c=osData.find(o=>o.id===rem[i]);const d=getDistanceFromLatLonInKm(co.lat,co.lng,c.lat,c.lng);if(d<nd){nd=d;ni=i}}cur=rem[ni];ord.push(cur);rem.splice(ni,1)}route=[...ff,...ord]}else{route=[...ff,...tr]}}
-            team.programmedOS=route;
-        });
-        closeModal('modal-generate');renderTeams();applyFilters();showRouteReport(apoioOS);
-    }
-
-    function undoAutoGenerate(){if(!preGenerateSnapshot)return alert("Nada para desfazer.");preGenerateSnapshot.teams.forEach(s=>{const t=teams.find(t=>t.id===s.id);if(t)t.programmedOS=s.programmedOS});preGenerateSnapshot.osTeamIds.forEach(s=>{const o=osData.find(o=>o.id===s.id);if(o)o.teamId=s.teamId});preGenerateSnapshot=null;renderTeams();applyFilters();closeModal('modal-report');alert("Rotas desfeitas!")}
-
-    function showRouteReport(apoioOS=[]){
-        const content=document.getElementById('report-content');const atl=teams.filter(t=>t.active);let tp=0,tc=0,tb='';
-        let ah='';if(apoioOS&&apoioOS.length>0){ah=`<div style="background:rgba(255,165,2,0.1);border:1px solid rgba(255,165,2,0.3);border-radius:var(--radius);padding:12px 16px;margin-bottom:16px;"><strong style="color:var(--warning);font-size:13px">⚠️ ${apoioOS.length} OS de Apoio</strong><p style="font-size:11px;color:var(--text-dim);margin-top:4px">Não programadas automaticamente. Programe manualmente:</p><div style="font-size:11px;margin-top:6px;color:var(--warning)">${apoioOS.slice(0,15).map(o=>`OS ${o.os} (${o.bairro})`).join(' · ')}${apoioOS.length>15?`<br>...e mais ${apoioOS.length-15}`:''}</div></div>`}
-        atl.forEach((team,idx)=>{
-            const osItems=team.programmedOS.map(id=>osData.find(o=>o.id===id)).filter(o=>o);tp+=osItems.length;const cc=osItems.filter(o=>getPrazoPriority(o)>=3).length;tc+=cc;const cities=[...new Set(osItems.map(o=>o.cidade))];const color=getTeamColor(idx);
-            let ih='';osItems.forEach((os,i)=>{ih+=`<div class="report-os-item"><span class="report-os-num" style="color:${color}">${i+1}.</span><span style="font-weight:600;min-width:80px">OS ${os.os}</span><span class="report-os-detail">${os.bairro} <span class="report-os-city">${os.cidade}</span></span><span>${getPrazoBadge(os.dataGeracao)}</span>${os.distWarning?'<span style="color:var(--warning);font-size:9px">📍</span>':''}${os.obs1?`<span style="color:var(--warning);font-size:10px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${os.obs1}">📝</span>`:''}</div>`});
-            const tags=[];if(team.opcoes)team.opcoes.forEach(o=>tags.push(o.replace('_',' ')));if(team.servicos)team.servicos.forEach(s=>tags.push(s));
-            const tgh=tags.length>0?tags.map(t=>`<span class="team-tag tag-option" style="font-size:9px">${t}</span>`).join(' '):'';
-            tb+=`<div class="report-team-block"><div class="report-team-header"><div class="team-label"><span style="color:${color};font-size:16px">●</span> ${team.name} ${tgh}</div><div class="report-team-stats"><span>📋 ${osItems.length} OS</span><span>🏙️ ${cities.join(', ')||'—'}</span><span style="color:${cc>0?'var(--danger)':'var(--text-muted)'}">⚠ ${cc} crítica${cc!==1?'s':''}</span></div></div><div class="report-os-list">${ih||'<div style="padding:8px;color:var(--text-muted);font-size:11px">Nenhuma OS</div>'}</div></div>`;
-        });
-        const un=osData.filter(o=>!o.teamId&&!o.isRestricted);let uh='';if(un.length>0){uh=`<div class="report-unassigned"><strong>⚠ ${un.length} OS não programada${un.length!==1?'s':''}</strong>${un.slice(0,10).map(o=>`OS ${o.os} (${o.bairro})`).join(' · ')}${un.length>10?`<br>...e mais ${un.length-10}`:''}</div>`}
-        content.innerHTML=`${ah}<div class="report-summary"><div class="summary-card"><div class="val">${tp}</div><div class="lbl">OS Programadas</div></div><div class="summary-card"><div class="val" style="color:var(--warning)">${atl.length}</div><div class="lbl">Equipes Ativas</div></div><div class="summary-card"><div class="val" style="color:var(--danger)">${tc}</div><div class="lbl">OS Críticas</div></div><div class="summary-card"><div class="val" style="color:var(--text-muted)">${un.length}</div><div class="lbl">Não Programadas</div></div></div>${tb}${uh}`;
-        document.getElementById('modal-report').style.display='flex';
-    }
-
-    // ================= ANÁLISE IA =================
-    function openAIAnalysis(){
-        if(osData.length===0)return alert("Carregue uma planilha primeiro.");
-        document.getElementById('modal-ai').style.display='flex';const content=document.getElementById('ai-content');
-        const total=osData.length;const rest=osData.filter(o=>o.isRestricted);const unprog=osData.filter(o=>o.teamId===null&&!o.isRestricted);
-        const crit=osData.filter(o=>getPrazoPriority(o)>=3&&!o.isRestricted);const vold=osData.filter(o=>getPrazoPriority(o)>=4&&!o.isRestricted);
-        const cb={};osData.filter(o=>!o.isRestricted).forEach(o=>{const c=o.cidade||'?';if(!cb[c])cb[c]={total:0,critical:0,programmed:0};cb[c].total++;if(getPrazoPriority(o)>=3)cb[c].critical++;if(o.teamId)cb[c].programmed++});
-        let ch='';Object.entries(cb).sort((a,b)=>b[1].critical-a[1].critical).forEach(([city,d])=>{const p=d.total>0?Math.round(d.programmed/d.total*100):0;ch+=`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)"><span>${city}</span><span>${d.total} OS · <span style="color:var(--danger)">${d.critical} críticas</span> · ${p}% prog.</span></div>`});
-        let html=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px"><div style="background:var(--surface-2);padding:12px;border-radius:8px;text-align:center"><div style="font-size:22px;font-weight:700">${total}</div><div style="font-size:10px;color:var(--text-dim)">TOTAL</div></div><div style="background:var(--danger-bg);padding:12px;border-radius:8px;text-align:center"><div style="font-size:22px;font-weight:700;color:var(--danger)">${rest.length}</div><div style="font-size:10px;color:var(--danger)">RESTRITAS</div></div><div style="background:var(--warning-bg);padding:12px;border-radius:8px;text-align:center"><div style="font-size:22px;font-weight:700;color:var(--warning)">${crit.length}</div><div style="font-size:10px;color:var(--warning)">CRÍTICAS</div></div></div><h3 style="font-size:13px;margin-bottom:8px">Distribuição por Cidade</h3><div style="background:var(--surface-2);padding:10px 14px;border-radius:8px;font-size:12px;margin-bottom:16px">${ch}</div><h3 style="font-size:13px;margin-bottom:8px">Recomendações</h3><div style="font-size:12px;line-height:1.7">`;
-        if(vold.length>0)html+=`<p style="margin-bottom:8px">🔴 <strong>${vold.length} OS com +30 dias.</strong> Priorizar.</p>`;
-        if(unprog.length>0)html+=`<p style="margin-bottom:8px">📋 <strong>${unprog.length} OS sem programação.</strong> Use "Gerar Rotas".</p>`;
-        const rnl=osData.filter(o=>isRedeNaoLocalizada(o)&&!o.isRestricted&&!o.teamId);if(rnl.length>0)html+=`<p style="margin-bottom:8px">🔄 <strong>${rnl.length} Rede Não Localizada</strong> aguardando.</p>`;
-        const corr=osData.filter(o=>o.distWarning);if(corr.length>0)html+=`<p style="margin-bottom:8px">📍 <strong>${corr.length} OS corrigidas</strong> pelo sistema salva-vidas de bairros.</p>`;
-        html+=`</div>`;content.innerHTML=html;
-    }
-
-    renderTeams();autoLoadFromGitHub();
-    </script>
+// ═══════════════════════ KEYBOARD ═══════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+</script>
 </body>
 </html>
